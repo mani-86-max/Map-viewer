@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Map Viewer - Editable GIS</title>
+
+<!-- OpenLayers -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol@10.7.0/ol.css">
+<!-- Bootstrap -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<style>
+html, body { margin: 0; height: 100%; font-family: Arial, sans-serif; overflow: hidden; }
+.map { width: 100%; height: 100vh; position: relative; z-index: 1; }
+
+/* Header & Footer */
+.app-header {
+  position: fixed; top: 0; left: 0; right: 0; height: 56px; 
+  background: rgba(0,0,0,0.85); backdrop-filter: blur(6px); color: #fff; 
+  display: flex; align-items: center; justify-content: center; padding: 0 20px; z-index: 300;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+.header-center { display: flex; align-items: center; gap: 12px; position: absolute; left: 50%; transform: translateX(-50%); }
+.app-header .logo { 
+  width: 40px; height: 40px; border-radius: 6px; 
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+  display: flex; align-items: center; justify-content: center; 
+  font-size: 20px; font-weight: bold; color: white;
+}
+.app-header .app-title { font-size: 20px; font-weight: 700; letter-spacing: 0.5px; }
+.header-right { margin-left: auto; font-size: 14px; opacity: 0.95; font-weight: 500; }
+
+.app-footer {
+  position: fixed; bottom: 0; left: 0; right: 0; height: 38px;
+  background: rgba(0,0,0,0.75); backdrop-filter: blur(5px); color: #fff;
+  display: flex; justify-content: center; align-items: center; z-index: 300; font-size: 13px;
+  box-shadow: 0 -2px 8px rgba(0,0,0,0.2);
+}
+
+/* Drawer */
+.drawer { position: fixed; top: 70px; left: 12px; z-index: 300; }
+.drawer-toggle { 
+  font-size: 20px; background: #fff; border: none; padding: 10px 12px; 
+  border-radius: 8px; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.15); transition: all 0.3s;
+}
+.drawer-toggle:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+.drawer-content { 
+  display: none; flex-direction: column; background: #fff; padding: 10px; 
+  margin-top: 8px; border-radius: 8px; box-shadow: 0 6px 20px rgba(0,0,0,0.15); min-width: 180px;
+}
+.drawer-content hr { margin: 8px 0; border: none; border-top: 1px solid #e0e0e0; }
+.icon-btn { 
+  display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 6px;
+  background: #f8f9fa; cursor: pointer; border: 1px solid #e0e0e0; transition: all 0.2s;
+  font-size: 14px; color: #333; margin: 2px 0;
+}
+.icon-btn:hover { background: #e9ecef; transform: translateX(3px); }
+.icon-btn.active { background: #0d6efd; color: #fff; border-color: #0d6efd; }
+
+/* Attribute Box */
+.attribute-box { 
+  display: none; position: fixed; bottom: 50px; right: 15px; width: 500px; max-height: 60vh;
+  background: rgba(20,20,20,0.95); color: #fff; border-radius: 10px; padding: 12px; z-index: 500;
+  flex-direction: column; box-shadow: 0 8px 32px rgba(0,0,0,0.5); resize: both; overflow: auto;
+  min-width: 350px; min-height: 200px;
+}
+.attribute-box.minimized { height: 50px !important; max-height: 50px !important; overflow: hidden; resize: none; }
+.attribute-box.minimized .table-wrapper, .attribute-box.minimized .attr-footer { display: none !important; }
+.attribute-box .box-header { 
+  display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;
+  cursor: grab; padding-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+.attribute-box .box-header:active { cursor: grabbing; }
+.attribute-box h5 { margin: 0; font-size: 16px; color: #00e5ff; font-weight: 600; }
+.attr-small-btn { 
+  background: none; border: none; color: #fff; cursor: pointer; font-size: 16px;
+  margin-left: 8px; padding: 4px 8px; border-radius: 4px; transition: all 0.2s;
+}
+.attr-small-btn:hover { background: rgba(255,255,255,0.1); }
+
+.table-wrapper { overflow: auto; max-height: calc(60vh - 120px); border-radius: 8px; margin-bottom: 10px; }
+.table-wrapper table { margin-bottom: 0; }
+.table-wrapper td[contenteditable="true"] { 
+  background: rgba(255,255,255,0.05); color: #fff; cursor: text; min-width: 80px;
+}
+.table-wrapper td[contenteditable="true"]:focus { background: rgba(255,255,255,0.1); outline: 1px solid #00e5ff; }
+.table-wrapper .table { color: #fff; }
+.table-wrapper .table thead th { background: rgba(0,0,0,0.5); border-color: rgba(255,255,255,0.1); position: sticky; top: 0; z-index: 10; }
+.table-wrapper .table tbody tr:hover { background: rgba(255,255,255,0.05); }
+.table-wrapper .table tbody tr.table-active { background: rgba(13,110,253,0.3) !important; }
+
+.attr-footer { 
+    display: flex; 
+    gap: 8px; 
+    justify-content: flex-end; 
+    padding-top: 8px; 
+    border-top: 1px solid rgba(255,255,255,0.1); 
+}
+.attr-footer .btn { 
+    font-size: 13px; 
+    font-weight: 500; 
+}
+.app-footer span {
+    margin: 0 5px;
+}
+
+/* Editor Box */
+.editor-box { 
+  display: none; position: fixed; bottom: 50px; left: 15px; background: rgba(255,255,255,0.98);
+  padding: 12px; border-radius: 10px; z-index: 500; box-shadow: 0 8px 32px rgba(0,0,0,0.2); min-width: 220px;
+}
+.editor-box .box-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid rgba(0,0,0,0.1); }
+.editor-buttons { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+.editor-btn { 
+  width: 48px; height: 48px; border: none; border-radius: 8px; cursor: pointer; font-size: 18px;
+  display: flex; align-items: center; justify-content: center; background: #0d6efd; color: #fff;
+  transition: all 0.2s; box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}
+.editor-btn:hover { opacity: 0.9; transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+.editor-btn.active { background: #198754; }
+
+/* Search */
+.search-bar { position: fixed; top: 70px; left: 50%; transform: translateX(-50%); z-index: 450; }
+.search-bar input { 
+  width: 400px; padding: 12px 20px; border-radius: 25px; border: 1px solid #ddd;
+  background: #fff; font-size: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.15); transition: all 0.3s;
+}
+.search-bar input:focus { outline: none; border-color: #0d6efd; box-shadow: 0 4px 12px rgba(13,110,253,0.3); }
+
+.suggestion-box { 
+  position: absolute; top: calc(100% + 8px); left: 50%; transform: translateX(-50%); width: 400px;
+  max-height: 300px; overflow-y: auto; background: #fff; border: 1px solid #ddd; border-radius: 12px;
+  z-index: 460; display: none; box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+}
+.suggestion-item { padding: 12px 16px; cursor: pointer; font-size: 14px; border-bottom: 1px solid rgba(0,0,0,0.06); transition: all 0.2s; }
+.suggestion-item:last-child { border-bottom: none; }
+.suggestion-item:hover, .suggestion-item.active { background: #0d6efd; color: #fff; }
+
+/* Popup */
+.popup { 
+  display: none; position: absolute; background: rgba(0,0,0,0.9); color: #fff;
+  padding: 8px 12px; border-radius: 6px; font-size: 13px; z-index: 470;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4); max-width: 300px; pointer-events: none;
+}
+
+/* Zoom Controls */
+.zoom-controls { position: fixed; top: 70px; right: 15px; z-index: 310; display: flex; flex-direction: column; gap: 8px; }
+.zoom-btn { 
+  width: 40px; height: 40px; border-radius: 8px; border: none; cursor: pointer; background: #fff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15); transition: all 0.2s; font-size: 16px; color: #333;
+}
+.zoom-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+
+@media(max-width: 768px) {
+  .search-bar input { width: 250px; padding: 10px 16px; }
+  .suggestion-box { width: 250px; }
+  .attribute-box { width: 90%; right: 5%; left: 5%; bottom: 50px; }
+  .editor-box { left: 5%; right: 5%; width: auto; }
+  .header-right { display: none; }
+  .app-title { font-size: 16px !important; }
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="app-header">
+  <div class="header-center">
+    <img src="images/logo.png" class="logo" alt="Logo">
+
+    <strong class="app-title">Map Viewer</strong>
+  </div>
+  <!--<div class="header-right">Editable Map</div>-->
+</header>
+
+<!-- MAP -->
+<div id="map" class="map"></div>
+
+<!-- DRAWER -->
+<div id="drawer" class="drawer">
+  <button id="drawerToggle" class="drawer-toggle" title="Menu"><i class="fas fa-bars"></i></button>
+  <div class="drawer-content">
+    <button id="homeBtn" class="icon-btn" title="Home"><i class="fas fa-home"></i></button>
+    <hr>
+    <div class="upload-section">
+      <button id="uploadShpBtn" class="icon-btn" title="Upload Shapefile"><i class="fas fa-file-zipper"></i></button>
+      <button id="uploadGeoJsonBtn" class="icon-btn" title="Upload GeoJSON"><i class="fas fa-file-code"></i></button>
+      <input type="file" id="fileInput" hidden>
+    </div>
+    <hr>
+    <div class="basemap-group">
+      <button id="osmBtn" class="icon-btn active" title="OpenStreetMap"><i class="fas fa-globe"></i></button>
+      <button id="topoBtn" class="icon-btn" title="Topographic"><i class="fas fa-mountain"></i></button>
+      <button id="stamenBtn" class="icon-btn" title="Stamen"><i class="fas fa-map"></i></button>
+      <button id="cartoBtn" class="icon-btn" title="Carto"><i class="fas fa-map-marked"></i></button>
+      <button id="esriBtn" class="icon-btn" title="Satellite"><i class="fas fa-satellite"></i></button>
+    </div>
+    <hr>
+    <button id="toggleAttributes" class="icon-btn" title="Attributes"><i class="fas fa-table"></i></button>
+    <hr>
+    <button id="toggleEditor" class="icon-btn" title="Editor Tools"><i class="fas fa-pencil-alt"></i></button>
+  </div>
+</div>
+
+<!-- ATTRIBUTE BOX -->
+<div id="attributeContainer" class="attribute-box">
+  <div class="box-header">
+    <div style="display:flex; align-items:center; gap:8px;">
+      <h5>Attributes</h5>
+      <button id="addAttrBtn" class="attr-small-btn" title="Add Attribute"><i class="fas fa-plus"></i></button>
+    </div>
+    <div>
+      <button id="minimizeAttr" class="attr-small-btn" title="Minimize"><i class="fas fa-minus"></i></button>
+      <button id="closeAttributes" class="attr-small-btn" title="Close"><i class="fas fa-times"></i></button>
+    </div>
+  </div>
+  <div class="table-wrapper">
+    <table id="attributeTable" class="table table-sm table-dark table-striped">
+      <thead id="attrHead"></thead>
+      <tbody id="attrBody"></tbody>
+    </table>
+  </div>
+  <div class="attr-footer">
+    <button id="saveChangesBtn" class="btn btn-sm btn-primary">Save</button>
+    <button id="deleteSelectedBtn" class="btn btn-sm btn-danger">Delete</button>
+    <button id="centerSelectedBtn" class="btn btn-sm btn-info">Center</button>
+    <button id="exportAllBtn" class="btn btn-sm btn-success">Export</button>
+  </div>
+</div>
+
+<!-- EDITOR BOX -->
+<div id="editorContainer" class="editor-box">
+  <div class="box-header">
+    <h6 style="margin:0; color:#333;">Editor Tools</h6>
+    <button id="closeEditor" class="attr-small-btn" style="color:#333;" title="Close"><i class="fas fa-times"></i></button>
+  </div>
+  <div class="editor-buttons">
+    <button id="drawPoint" class="editor-btn" title="Draw Point"><i class="fas fa-circle"></i></button>
+    <button id="drawLine" class="editor-btn" title="Draw Line"><i class="fas fa-grip-lines"></i></button>
+    <button id="drawPolygon" class="editor-btn" title="Draw Polygon"><i class="fas fa-vector-square"></i></button>
+    <button id="modifyFeature" class="editor-btn" title="Modify"><i class="fas fa-edit"></i></button>
+    <button id="deleteFeature" class="editor-btn" title="Delete"><i class="fas fa-trash"></i></button>
+    <button id="saveFeature" class="editor-btn" title="Export"><i class="fas fa-save"></i></button>
+  </div>
+</div>
+
+<!-- ZOOM + LOCATION -->
+<div class="zoom-controls">
+  <button id="zoomIn" class="zoom-btn" title="Zoom In"><i class="fas fa-plus"></i></button>
+  <button id="zoomOut" class="zoom-btn" title="Zoom Out"><i class="fas fa-minus"></i></button>
+  <button id="locationBtn" class="zoom-btn" title="My Location"><i class="fas fa-location-arrow"></i></button>
+</div>
+
+<!-- SEARCH -->
+<div class="search-bar">
+  <input type="text" id="searchInput" placeholder="Search location...">
+  <div id="suggestionBox" class="suggestion-box"></div>
+</div>
+
+<!-- POPUP -->
+<div id="popup" class="popup"></div>
+
+<!-- FOOTER -->
+<footer class="app-footer">
+    © <span id="year"> </span>  Map Viewer
+</footer>
+
+
+<!-- Libraries -->
+<script src="https://cdn.jsdelivr.net/npm/ol@10.7.0/dist/ol.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/shpjs@latest/dist/shp.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+document.getElementById('year').innerText = new Date().getFullYear();
+
+/* ========================= */
+/*   MAP INITIALIZATION      */
+/* ========================= */
+
+// Base Layers
+const osmLayer = new ol.layer.Tile({ source: new ol.source.OSM(), visible: true });
+const topoLayer = new ol.layer.Tile({ source: new ol.source.XYZ({ url: "https://{a-c}.tile.opentopomap.org/{z}/{x}/{y}.png" }), visible: false });
+const stamenLayer = new ol.layer.Tile({ source: new ol.source.XYZ({ url: "https://stamen-tiles.a.ssl.fastly.net/toner/{z}/{x}/{y}.png" }), visible: false });
+const cartoLayer = new ol.layer.Tile({ source: new ol.source.XYZ({ url: "https://cartodb-basemaps-a.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png" }), visible: false });
+const esriLayer = new ol.layer.Tile({ source: new ol.source.XYZ({ url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}" }), visible: false });
+
+// Vector Layers (GeoJSON z=20, Shapefile z=30, User z=40)
+const geojsonLayer = new ol.layer.Vector({ source: new ol.source.Vector(), zIndex: 20 });
+const shapefileLayer = new ol.layer.Vector({ source: new ol.source.Vector(), zIndex: 30 });
+const vectorSource = new ol.source.Vector();
+const vectorLayer = new ol.layer.Vector({ source: vectorSource, zIndex: 40 });
+const userSource = new ol.source.Vector();
+const userLayer = new ol.layer.Vector({ source: userSource, zIndex: 50 });
+
+// Feature Styling
+function featureStyle(feature) {
+  const geom = feature.getGeometry && feature.getGeometry();
+  const baseColor = feature.get('color') || '#0d6efd';
+  if (geom && geom.getType && geom.getType() === 'Point') {
+    return new ol.style.Style({ image: new ol.style.Circle({ radius: 7, fill: new ol.style.Fill({ color: baseColor }), stroke: new ol.style.Stroke({ color: '#fff', width: 2 }) }) });
+  }
+  return new ol.style.Style({ fill: new ol.style.Fill({ color: baseColor + '33' }), stroke: new ol.style.Stroke({ color: baseColor, width: 2 }) });
+}
+
+vectorLayer.setStyle(featureStyle);
+shapefileLayer.setStyle(featureStyle);
+geojsonLayer.setStyle(featureStyle);
+
+// Map
+const map = new ol.Map({
+  target: "map",
+  layers: [osmLayer, topoLayer, stamenLayer, cartoLayer, esriLayer, geojsonLayer, shapefileLayer, vectorLayer, userLayer],
+  view: new ol.View({ center: ol.proj.fromLonLat([72.8777, 19.0760]), zoom: 12 }),
+  controls: []
+});
+
+// Utilities
+function randomColor() { return '#' + Math.floor(Math.random()*0xFFFFFF).toString(16).padStart(6,'0'); }
+function safeId(p='fid') { return `${p}-${Date.now()}-${Math.random().toString(36).slice(2,8)}`; }
+function escapeHtml(t) { return (t+'').replace(/[&<>"'`=\/]/g, s => '&#'+s.charCodeAt(0)+';'); }
+
+let customAttributes = [];
+try { customAttributes = JSON.parse(localStorage.getItem('customAttributes')||'[]')||[]; } catch(e) { customAttributes = []; }
+
+/* ========================= */
+/*   POPUP                   */
+/* ========================= */
+const popup = document.getElementById("popup");
+const overlay = new ol.Overlay({ element: popup, positioning: "bottom-center", stopEvent: false, offset: [0,-12] });
+map.addOverlay(overlay);
+
+function openPopupForFeature(f) {
+  const geom = f.getGeometry && f.getGeometry();
+  if (!geom) return;
+  const coord = geom.getType&&geom.getType()==='Point' ? geom.getCoordinates() : ol.extent.getCenter(geom.getExtent());
+  overlay.setPosition(coord);
+  const props = Object.assign({}, f.getProperties());
+  delete props.geometry;
+  popup.innerHTML = Object.entries(props).map(([k,v])=>`<b>${escapeHtml(k)}</b>: ${escapeHtml(String(v||''))}`).join('<br>');
+  popup.style.display = 'block';
+}
+
+function hidePopup() { popup.style.display = 'none'; overlay.setPosition(undefined); }
+
+function showTempPopup(msg, dur=2500) {
+  popup.innerText = msg; popup.style.display = 'block'; popup.style.position = 'fixed';
+  popup.style.top = '50%'; popup.style.left = '50%'; popup.style.transform = 'translate(-50%,-50%)'; popup.style.zIndex = '99999';
+  setTimeout(()=>{ popup.style.display='none'; popup.style.position='absolute'; popup.style.transform='none'; }, dur);
+}
+
+/* ========================= */
+/*   ELEMENTS & CONTROLS     */
+/* ========================= */
+const drawerToggle = document.getElementById("drawerToggle");
+const drawerContent = document.querySelector(".drawer-content");
+const fileInput = document.getElementById("fileInput");
+const attributeBox = document.getElementById("attributeContainer");
+const attrHead = document.getElementById("attrHead");
+const attrBody = document.getElementById("attrBody");
+const editorBox = document.getElementById("editorContainer");
+
+drawerToggle.onclick = () => {
+  const isOpen = drawerContent.style.display === "flex";
+  drawerContent.style.display = isOpen ? "none" : "flex";
+  if (isOpen) { attributeBox.style.display = "none"; editorBox.style.display = "none"; }
+};
+
+document.getElementById("toggleAttributes").onclick = () => {
+  if (drawerContent.style.display !== "flex") return;
+  const isVis = attributeBox.style.display === "flex";
+  if (isVis) attributeBox.style.display = "none"; else { buildAttributeTable(); attributeBox.style.display = "flex"; }
+};
+
+document.getElementById("toggleEditor").onclick = () => {
+  if (drawerContent.style.display !== "flex") return;
+  editorBox.style.display = editorBox.style.display === "flex" ? "none" : "flex";
+};
+
+document.getElementById("closeAttributes").onclick = () => attributeBox.style.display = "none";
+document.getElementById("closeEditor").onclick = () => { editorBox.style.display = "none"; removeInteractions(); };
+
+document.getElementById("minimizeAttr").onclick = () => {
+  attributeBox.classList.toggle("minimized");
+  const icon = document.getElementById("minimizeAttr").querySelector('i');
+  icon.className = attributeBox.classList.contains("minimized") ? "fas fa-window-maximize" : "fas fa-minus";
+};
+
+// Home & Basemaps
+document.getElementById("homeBtn").onclick = () => map.getView().animate({ center: ol.proj.fromLonLat([72.8777,19.0760]), zoom: 12, duration: 600 });
+
+function setBase(layer) {
+  [osmLayer, topoLayer, stamenLayer, cartoLayer, esriLayer].forEach(l => l.setVisible(l === layer));
+  document.querySelectorAll('.basemap-group .icon-btn').forEach(b => b.classList.remove('active'));
+}
+
+document.getElementById("osmBtn").onclick = () => { setBase(osmLayer); document.getElementById("osmBtn").classList.add('active'); };
+document.getElementById("topoBtn").onclick = () => { setBase(topoLayer); document.getElementById("topoBtn").classList.add('active'); };
+document.getElementById("stamenBtn").onclick = () => { setBase(stamenLayer); document.getElementById("stamenBtn").classList.add('active'); };
+document.getElementById("cartoBtn").onclick = () => { setBase(cartoLayer); document.getElementById("cartoBtn").classList.add('active'); };
+document.getElementById("esriBtn").onclick = () => { setBase(esriLayer); document.getElementById("esriBtn").classList.add('active'); };
+
+// Zoom
+document.getElementById("zoomIn").onclick = () => map.getView().setZoom(map.getView().getZoom()+1);
+document.getElementById("zoomOut").onclick = () => map.getView().setZoom(map.getView().getZoom()-1);
+
+/* ========================= */
+/*   SEARCH                  */
+/* ========================= */
+const searchInput = document.getElementById("searchInput");
+const suggestionBox = document.getElementById("suggestionBox");
+let suggestionIndex = -1, currentSuggestions = [];
+
+function closeSuggestions() {
+  suggestionBox.style.display = 'none'; suggestionBox.innerHTML = ''; suggestionIndex = -1; currentSuggestions = [];
+}
+
+searchInput.addEventListener("input", async () => {
+  const q = searchInput.value.trim();
+  if (!q) { closeSuggestions(); return; }
+  try {
+    const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&limit=6`);
+    const data = await res.json();
+    suggestionBox.innerHTML = ''; currentSuggestions = data||[];
+    if (!currentSuggestions.length) { closeSuggestions(); return; }
+    currentSuggestions.forEach((item,idx) => {
+      const div = document.createElement('div');
+      div.className = 'suggestion-item'; div.dataset.idx = idx; div.textContent = item.display_name;
+      div.onclick = (ev) => {
+        ev.stopPropagation(); searchInput.value = item.display_name;
+        map.getView().animate({ center: ol.proj.fromLonLat([+item.lon,+item.lat]), zoom: 14 }); closeSuggestions();
+      };
+      suggestionBox.appendChild(div);
+    });
+    suggestionBox.style.display = 'block';
+  } catch(err) { closeSuggestions(); }
+});
+
+searchInput.addEventListener('keydown', (e) => {
+  const items = suggestionBox.querySelectorAll('.suggestion-item');
+  if (!items.length) return;
+  if (e.key === 'ArrowDown') { e.preventDefault(); suggestionIndex = (suggestionIndex+1)%items.length; items.forEach(it=>it.classList.remove('active')); items[suggestionIndex].classList.add('active'); items[suggestionIndex].scrollIntoView({block:'nearest'}); }
+  else if (e.key === 'ArrowUp') { e.preventDefault(); suggestionIndex = (suggestionIndex-1+items.length)%items.length; items.forEach(it=>it.classList.remove('active')); items[suggestionIndex].classList.add('active'); items[suggestionIndex].scrollIntoView({block:'nearest'}); }
+  else if (e.key === 'Enter' && suggestionIndex >= 0 && items[suggestionIndex]) { e.preventDefault(); items[suggestionIndex].click(); }
+  else if (e.key === 'Escape') closeSuggestions();
+});
+
+document.addEventListener('click', (e) => { if (!suggestionBox.contains(e.target) && e.target !== searchInput) closeSuggestions(); });
+
+/* ========================= */
+/*   USER LOCATION           */
+/* ========================= */
+document.getElementById("locationBtn").onclick = () => {
+  if (!navigator.geolocation) { alert("Geolocation not supported"); return; }
+  navigator.geolocation.getCurrentPosition(pos => {
+    const coords = [pos.coords.longitude, pos.coords.latitude];
+    const point = new ol.Feature(new ol.geom.Point(ol.proj.fromLonLat(coords)));
+    point.setStyle(new ol.style.Style({ image: new ol.style.Circle({ radius:8, fill: new ol.style.Fill({ color:'#00e676' }), stroke: new ol.style.Stroke({ color:'#fff', width:2 }) }) }));
+    userSource.clear(); userSource.addFeature(point);
+    map.getView().animate({ center: ol.proj.fromLonLat(coords), zoom: 15, duration: 600 });
+  }, ()=>alert("Unable to get location"));
+};
+
+/* ========================= */
+/*   FILE UPLOAD             */
+/* ========================= */
+document.getElementById("uploadShpBtn").onclick = () => { fileInput.accept = '.zip'; fileInput.dataset.type = 'shapefile'; fileInput.click(); };
+document.getElementById("uploadGeoJsonBtn").onclick = () => { fileInput.accept = '.geojson,.json'; fileInput.dataset.type = 'geojson'; fileInput.click(); };
+
+fileInput.onchange = async (e) => {
+  const f = e.target.files[0]; if (!f) return;
+  const name = f.name.toLowerCase();
+  const type = fileInput.dataset.type || 'geojson';
+  try {
+    if (name.endsWith('.zip')) {
+      try { shp.bufferSize = 512*1024*1024; } catch(_) {}
+      const geo = await shp(await f.arrayBuffer());
+      handleLoaded(geo, 'shapefile');
+    } else if (name.endsWith('.geojson') || name.endsWith('.json')) {
+      handleLoaded(JSON.parse(await f.text()), 'geojson');
+    } else {
+      alert("Unsupported file. Use ZIP (shapefile) or GeoJSON.");
+    }
+  } catch (err) { console.error(err); alert("Failed to load: " + (err.message || err)); }
+  fileInput.value = "";
+};
+
+function handleLoaded(geo, type='geojson') {
+  const fmt = new ol.format.GeoJSON();
+  let features = [];
+  if (Array.isArray(geo)) {
+    geo.forEach(g => features = features.concat(fmt.readFeatures(g, { featureProjection: "EPSG:3857" })));
+  } else {
+    features = fmt.readFeatures(geo, { featureProjection: "EPSG:3857" });
+  }
+  if (!features.length) return alert("No features found");
+
+  const sourceFeatureCount = vectorSource.getFeatures().length + shapefileLayer.getSource().getFeatures().length + geojsonLayer.getSource().getFeatures().length;
+
+  features.forEach((f,i) => {
+    const p = f.getProperties();
+    if (!p.name && !p.NAME) f.set('name', `Feature ${sourceFeatureCount + i + 1}`);
+    if (!f.get('color')) f.set('color', randomColor());
+    if (!f.getId()) f.setId(safeId());
+    customAttributes.forEach(k => { if (f.get(k) === undefined) f.set(k, ''); });
+  });
+
+  if (type === 'shapefile') {
+    shapefileLayer.getSource().addFeatures(features);
+  } else {
+    geojsonLayer.getSource().addFeatures(features);
+  }
+
+  try {
+    const source = type === 'shapefile' ? shapefileLayer.getSource() : geojsonLayer.getSource();
+    const extent = source.getExtent();
+    if (extent && extent.every(v => isFinite(v))) {
+      map.getView().fit(extent, { padding: [50,50,50,50], duration: 700, maxZoom: 16 });
+    }
+  } catch (e) {}
+
+  buildAttributeTable();
+  saveToLocal();
+  showTempPopup(`Loaded ${features.length} features`);
+}
+
+/* ========================= */
+/*   SELECTION               */
+/* ========================= */
+let selectedFeature = null;
+
+const selectInteraction = new ol.interaction.Select({
+  layers: [vectorLayer, shapefileLayer, geojsonLayer],
+  style: new ol.style.Style({
+    stroke: new ol.style.Stroke({ color: '#ffcc00', width: 4 }),
+    fill: new ol.style.Fill({ color: '#ffcc0033' }),
+    image: new ol.style.Circle({ radius:9, fill: new ol.style.Fill({ color:'#ffcc00' }), stroke: new ol.style.Stroke({ color:'#fff', width:2 }) })
+  })
+});
+map.addInteraction(selectInteraction);
+
+selectInteraction.on('select', (evt) => {
+  const f = (evt.selected && evt.selected[0]) ? evt.selected[0] : null;
+  if (f) {
+    selectedFeature = f;
+    highlightRowForFeature(f);
+    openPopupForFeature(f);
+  } else {
+    selectedFeature = null;
+    removeRowHighlights();
+    hidePopup();
+  }
+});
+
+function findFeatureSource(feature) {
+  if (vectorSource.getFeatureById(feature.getId())) return vectorSource;
+  if (shapefileLayer.getSource().getFeatureById(feature.getId())) return shapefileLayer.getSource();
+  if (geojsonLayer.getSource().getFeatureById(feature.getId())) return geojsonLayer.getSource();
+  if (vectorSource.getFeatures().includes(feature)) return vectorSource;
+  if (shapefileLayer.getSource().getFeatures().includes(feature)) return shapefileLayer.getSource();
+  if (geojsonLayer.getSource().getFeatures().includes(feature)) return geojsonLayer.getSource();
+  return null;
+}
+
+function findByIdAcrossSources(id) {
+  let f = vectorSource.getFeatureById(id);
+  if (f) return f;
+  f = shapefileLayer.getSource().getFeatureById(id);
+  if (f) return f;
+  f = geojsonLayer.getSource().getFeatureById(id);
+  return f;
+}
+
+/* ========================= */
+/*   ATTRIBUTE TABLE         */
+/* ========================= */
+function buildAttributeTable() {
+  attrHead.innerHTML = '';
+  attrBody.innerHTML = '';
+
+  const feats = [].concat(vectorSource.getFeatures(), shapefileLayer.getSource().getFeatures(), geojsonLayer.getSource().getFeatures());
+
+  if (!feats.length) {
+    attrHead.innerHTML = '<tr><th>No features</th></tr>';
+    attributeBox.style.display = 'none';
+    showTempPopup('No features exist');
+    return;
+  }
+
+  const keySet = new Set();
+  feats.forEach(f => Object.keys(f.getProperties()).forEach(k => { if(k !== 'geometry') keySet.add(k); }));
+  customAttributes.forEach(k => keySet.add(k));
+
+  const keys = Array.from(keySet);
+  if (!keys.includes('name')) keys.unshift('name');
+
+  attrHead.innerHTML = '<tr>' + keys.map(k => `<th>${escapeHtml(k)}</th>`).join('') + '<th>Actions</th></tr>';
+
+  feats.forEach((f) => {
+    if (!f.getId()) f.setId(safeId());
+    const fid = f.getId();
+    const tr = document.createElement('tr');
+    tr.setAttribute('data-fid', fid);
+    tr.onclick = () => {
+      const sel = selectInteraction.getFeatures();
+      sel.clear();
+      sel.push(f);
+      selectedFeature = f;
+      highlightRowForFeature(f);
+      if (attributeBox.style.display !== 'flex') attributeBox.style.display = 'flex';
+    };
+    keys.forEach(k => {
+      if (f.get(k) === undefined) f.set(k, '');
+      const td = document.createElement('td');
+      td.contentEditable = true;
+      td.dataset.key = k;
+      td.innerText = f.get(k) || '';
+      tr.appendChild(td);
+    });
+    const actionTd = document.createElement('td');
+    actionTd.innerHTML = `<button class="btn btn-sm btn-outline-primary btn-focus">Center</button> <button class="btn btn-sm btn-outline-danger btn-del-feature">Delete</button>`;
+    tr.appendChild(actionTd);
+    attrBody.appendChild(tr);
+  });
+
+  attrBody.querySelectorAll('.btn-focus').forEach(b => b.onclick = function (ev) {
+    ev.stopPropagation();
+    const fid = this.closest('tr').dataset.fid;
+    const f = findByIdAcrossSources(fid);
+    if (!f) return;
+    const geom = f.getGeometry();
+    const center = geom.getType&&geom.getType()==='Point' ? geom.getCoordinates() : ol.extent.getCenter(geom.getExtent());
+    map.getView().animate({ center, zoom: Math.max(map.getView().getZoom(), 14), duration: 600 });
+  });
+
+  attrBody.querySelectorAll('.btn-del-feature').forEach(b => b.onclick = function (ev) {
+    ev.stopPropagation();
+    const fid = this.closest('tr').dataset.fid;
+    const f = findByIdAcrossSources(fid);
+    if (!f || !confirm('Delete this feature?')) return;
+    const src = findFeatureSource(f);
+    if (src) src.removeFeature(f);
+    selectInteraction.getFeatures().remove(f);
+    buildAttributeTable();
+    saveToLocal();
+  });
+}
+
+function highlightRowForFeature(f) {
+  removeRowHighlights();
+  const row = attrBody.querySelector(`tr[data-fid="${f.getId()}"]`);
+  if (row) row.classList.add('table-active');
+}
+
+function removeRowHighlights() {
+  attrBody.querySelectorAll('tr').forEach(r => r.classList.remove('table-active'));
+}
+
+/* ========================= */
+/*   SAVE/DELETE/CENTER/EXP  */
+/* ========================= */
+document.getElementById("saveChangesBtn").onclick = () => {
+  const rows = Array.from(attrBody.querySelectorAll('tr[data-fid]'));
+  rows.forEach(row => {
+    const fid = row.getAttribute('data-fid');
+    const f = findByIdAcrossSources(fid);
+    if (!f) return;
+    const cells = Array.from(row.querySelectorAll('td[data-key]'));
+    const newProps = {};
+    cells.forEach(td => { if (td.dataset.key) newProps[td.dataset.key] = td.innerText.trim(); });
+    f.setProperties(Object.assign({}, f.getProperties(), newProps), true);
+  });
+  showTempPopup('All edits saved');
+  buildAttributeTable();
+  saveToLocal();
+};
+
+document.getElementById("deleteSelectedBtn").onclick = () => {
+  if (!selectedFeature || !confirm('Delete selected feature?')) return;
+  const src = findFeatureSource(selectedFeature);
+  if (src) src.removeFeature(selectedFeature);
+  selectedFeature = null;
+  buildAttributeTable();
+  saveToLocal();
+};
+
+document.getElementById("centerSelectedBtn").onclick = () => {
+  if (!selectedFeature) return alert('Select a feature first.');
+  const geom = selectedFeature.getGeometry();
+  const center = geom.getType&&geom.getType()==='Point' ? geom.getCoordinates() : ol.extent.getCenter(geom.getExtent());
+  map.getView().animate({ center, zoom: 14, duration: 600 });
+};
+
+document.getElementById("exportAllBtn").onclick = () => {
+  const fmt = new ol.format.GeoJSON();
+  const allFeatures = [].concat(vectorSource.getFeatures(), shapefileLayer.getSource().getFeatures(), geojsonLayer.getSource().getFeatures());
+  if (!allFeatures.length) return alert('No features to export');
+  const data = JSON.stringify(fmt.writeFeaturesObject(allFeatures, { featureProjection: 'EPSG:3857' }), null, 2);
+  const blob = new Blob([data], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'features.geojson';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+  showTempPopup('Features exported');
+};
+
+/* ========================= */
+/*   DRAW / MODIFY           */
+/* ========================= */
+let drawInteraction = null;
+let modifyInteraction = null;
+
+function removeInteractions() {
+  if (drawInteraction) { map.removeInteraction(drawInteraction); drawInteraction = null; }
+  if (modifyInteraction) { map.removeInteraction(modifyInteraction); modifyInteraction = null; }
+  document.querySelectorAll('.editor-btn').forEach(btn => btn.classList.remove('active'));
+}
+
+function addDraw(type, button) {
+  removeInteractions();
+  drawInteraction = new ol.interaction.Draw({ source: vectorSource, type });
+  if (button) button.classList.add('active');
+  map.addInteraction(drawInteraction);
+  drawInteraction.on('drawend', e => {
+    const f = e.feature;
+    if (!f.get('name')) f.set('name', `Feature ${vectorSource.getFeatures().length}`);
+    if (!f.get('color')) f.set('color', randomColor());
+    if (!f.getId()) f.setId(safeId());
+    customAttributes.forEach(k => { if (f.get(k) === undefined) f.set(k, ''); });
+    
+    setTimeout(() => {
+      const sel = selectInteraction.getFeatures();
+      sel.clear();
+      sel.push(f);
+      selectedFeature = f;
+      if (attributeBox.style.display !== 'flex') attributeBox.style.display = 'flex';
+      buildAttributeTable();
+      
+      try {
+        const name = prompt('Enter name (optional):', f.get('name') || '');
+        if (name !== null && name.trim()) f.set('name', name.trim());
+        const date = prompt('Enter date YYYY-MM-DD (optional):', '');
+        if (date !== null && date.trim()) f.set('date', date.trim());
+        const addr = prompt('Enter address (optional):', '');
+        if (addr !== null && addr.trim()) f.set('address', addr.trim());
+        const author = prompt('Created by (optional):', '');
+        if (author !== null && author.trim()) f.set('created_by', author.trim());
+        buildAttributeTable();
+      } catch(err) {}
+      
+      saveToLocal();
+    }, 100);
+    
+    removeInteractions();
+  });
+}
+
+function startModify() {
+  removeInteractions();
+  const modifySource = new ol.Collection();
+  vectorSource.getFeatures().forEach(f => modifySource.push(f));
+  shapefileLayer.getSource().getFeatures().forEach(f => modifySource.push(f));
+  geojsonLayer.getSource().getFeatures().forEach(f => modifySource.push(f));
+  modifyInteraction = new ol.interaction.Modify({ features: modifySource });
+  map.addInteraction(modifyInteraction);
+  modifyInteraction.on('modifyend', () => { buildAttributeTable(); saveToLocal(); });
+  const btn = document.getElementById('modifyFeature');
+  if (btn) btn.classList.add('active');
+  showTempPopup('Modify mode active - drag features to edit');
+}
+
+document.getElementById('drawPoint').onclick = function() { addDraw('Point', this); };
+document.getElementById('drawLine').onclick = function() { addDraw('LineString', this); };
+document.getElementById('drawPolygon').onclick = function() { addDraw('Polygon', this); };
+document.getElementById('modifyFeature').onclick = startModify;
+document.getElementById('deleteFeature').onclick = () => document.getElementById('deleteSelectedBtn').click();
+document.getElementById('saveFeature').onclick = () => document.getElementById('exportAllBtn').click();
+
+/* ========================= */
+/*   LOCAL STORAGE           */
+/* ========================= */
+function saveToLocal() {
+  try {
+    const fmt = new ol.format.GeoJSON();
+    const data = {
+      vectorFeatures: fmt.writeFeaturesObject(vectorSource.getFeatures(), { featureProjection: 'EPSG:3857' }),
+      shapefileFeatures: fmt.writeFeaturesObject(shapefileLayer.getSource().getFeatures(), { featureProjection: 'EPSG:3857' }),
+      geojsonFeatures: fmt.writeFeaturesObject(geojsonLayer.getSource().getFeatures(), { featureProjection: 'EPSG:3857' })
+    };
+    localStorage.setItem("savedFeatures", JSON.stringify(data));
+    localStorage.setItem("customAttributes", JSON.stringify(customAttributes||[]));
+  } catch(e) { console.error('Save error', e); }
+}
+
+function loadFromLocal() {
+  try {
+    customAttributes = JSON.parse(localStorage.getItem('customAttributes')||'[]')||[];
+  } catch(e) { customAttributes = []; }
+  
+  const data = localStorage.getItem("savedFeatures");
+  if (!data) return;
+  
+  try {
+    const fmt = new ol.format.GeoJSON();
+    const parsed = JSON.parse(data);
+    
+    if (parsed.vectorFeatures || parsed.shapefileFeatures || parsed.geojsonFeatures) {
+      if (parsed.vectorFeatures && parsed.vectorFeatures.features) {
+        const feats = fmt.readFeatures(parsed.vectorFeatures, { featureProjection: 'EPSG:3857' });
+        feats.forEach(f => customAttributes.forEach(k => { if (f.get(k) === undefined) f.set(k, ''); }));
+        vectorSource.addFeatures(feats);
+      }
+      if (parsed.shapefileFeatures && parsed.shapefileFeatures.features) {
+        const feats = fmt.readFeatures(parsed.shapefileFeatures, { featureProjection: 'EPSG:3857' });
+        feats.forEach(f => customAttributes.forEach(k => { if (f.get(k) === undefined) f.set(k, ''); }));
+        shapefileLayer.getSource().addFeatures(feats);
+      }
+      if (parsed.geojsonFeatures && parsed.geojsonFeatures.features) {
+        const feats = fmt.readFeatures(parsed.geojsonFeatures, { featureProjection: 'EPSG:3857' });
+        feats.forEach(f => customAttributes.forEach(k => { if (f.get(k) === undefined) f.set(k, ''); }));
+        geojsonLayer.getSource().addFeatures(feats);
+      }
+    } else {
+      const feats = fmt.readFeatures(parsed, { featureProjection: 'EPSG:3857' });
+      feats.forEach(f => customAttributes.forEach(k => { if (f.get(k) === undefined) f.set(k, ''); }));
+      vectorSource.addFeatures(feats);
+    }
+  } catch(e) { console.error('Load error', e); }
+}
+
+loadFromLocal();
+
+/* ========================= */
+/*   CUSTOM ATTRIBUTES       */
+/* ========================= */
+document.getElementById("addAttrBtn").addEventListener('click', () => {
+  const name = prompt("Enter attribute name:");
+  if (!name) return;
+  const key = name.trim();
+  if (!key) return;
+  const exists = customAttributes.find(k => k.toLowerCase() === key.toLowerCase());
+  if (exists) { alert("Attribute already exists."); return; }
+  customAttributes.push(key);
+  [].concat(vectorSource.getFeatures(), shapefileLayer.getSource().getFeatures(), geojsonLayer.getSource().getFeatures()).forEach(f => {
+    if (f.get(key) === undefined) f.set(key, '');
+  });
+  saveToLocal();
+  buildAttributeTable();
+  showTempPopup(`Attribute "${key}" added`);
+});
+
+/* ========================= */
+/*   DRAGGABLE/RESIZABLE     */
+/* ========================= */
+(function() {
+  const box = attributeBox;
+  const header = box.querySelector('.box-header');
+  let isDrag = false, offsetX = 0, offsetY = 0;
+  
+  header.addEventListener("mousedown", (e) => {
+    if (e.target.closest('button')) return;
+    isDrag = true;
+    const rect = box.getBoundingClientRect();
+    offsetX = e.clientX - rect.left;
+    offsetY = e.clientY - rect.top;
+    box.style.position = "fixed";
+    box.style.zIndex = 99999;
+    document.body.style.userSelect = 'none';
+  });
+  
+  document.addEventListener("mousemove", (e) => {
+    if (!isDrag) return;
+    let left = e.clientX - offsetX;
+    let top = e.clientY - offsetY;
+    const pad = 8;
+    left = Math.max(pad, Math.min(left, window.innerWidth - box.offsetWidth - pad));
+    top = Math.max(pad, Math.min(top, window.innerHeight - box.offsetHeight - pad));
+    box.style.left = left + "px";
+    box.style.top = top + "px";
+    box.style.right = 'auto';
+    box.style.bottom = 'auto';
+  });
+  
+  document.addEventListener("mouseup", () => { isDrag = false; document.body.style.userSelect = ''; });
+
+  const resizer = document.createElement("div");
+  resizer.style.width = "14px"; resizer.style.height = "14px"; resizer.style.background = "transparent";
+  resizer.style.position = "absolute"; resizer.style.right = "0"; resizer.style.bottom = "0";
+  resizer.style.cursor = "se-resize"; resizer.style.borderRight = "3px solid rgba(255,255,255,0.4)";
+  resizer.style.borderBottom = "3px solid rgba(255,255,255,0.4)"; resizer.style.zIndex = "10";
+  box.appendChild(resizer);
+  
+  let isResize = false;
+  resizer.addEventListener("mousedown", (e) => { 
+    e.preventDefault(); e.stopPropagation(); isResize = true; 
+    box.style.position = "fixed"; document.body.style.userSelect = 'none';
+  });
+  
+  document.addEventListener("mousemove", (e) => {
+    if (!isResize) return;
+    const left = box.getBoundingClientRect().left;
+    const top = box.getBoundingClientRect().top;
+    let newW = e.clientX - left;
+    let newH = e.clientY - top;
+    newW = Math.max(350, Math.min(window.innerWidth - left - 10, newW));
+    newH = Math.max(200, Math.min(window.innerHeight - top - 10, newH));
+    box.style.width = newW + "px";
+    box.style.height = newH + "px";
+  });
+  
+  document.addEventListener("mouseup", () => { isResize = false; document.body.style.userSelect = ''; });
+})();
+
+buildAttributeTable();
+</script>
+
+</body>
+</html>
