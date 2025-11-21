@@ -3,7 +3,11 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
+<<<<<<< HEAD
 <title>Map Viewer </title>
+=======
+<title>Map Viewer</title>
+>>>>>>> a0c3987 (Updated index.html)
 
 <!-- OpenLayers -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol@10.7.0/ol.css">
@@ -13,25 +17,61 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
 <style>
-html, body { margin: 0; height: 100%; font-family: Arial, sans-serif; overflow: hidden; }
-.map { width: 100%; height: 100vh; position: relative; z-index: 1; }
+html, body { 
+  margin: 0; 
+  height: 100%; 
+  font-family: Arial, sans-serif; 
+  overflow: hidden; 
+}
+.map { 
+  width: 100%; 
+  height: 100vh; 
+  position: relative; 
+  z-index: 1; 
+}
 
 /* Header & Footer */
 .app-header {
-  position: fixed; top: 0; left: 0; right: 0; height: 56px; 
-  background: rgba(0,0,0,0.85); backdrop-filter: blur(6px); color: #fff; 
-  display: flex; align-items: center; justify-content: center; padding: 0 20px; z-index: 300;
+  position: fixed; 
+  top: 0; 
+  left: 0; 
+  right: 0; 
+  height: 56px; 
+  background: rgba(0,0,0,0.85); 
+  backdrop-filter: blur(6px); 
+  color: #fff; 
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  padding: 0 20px; 
+  z-index: 300;
   box-shadow: 0 2px 8px rgba(0,0,0,0.3);
 }
-.header-center { display: flex; align-items: center; gap: 12px; position: absolute; left: 50%; transform: translateX(-50%); }
-.app-header .logo { 
-  width: 40px; height: 40px; border-radius: 6px; 
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
-  display: flex; align-items: center; justify-content: center; 
-  font-size: 20px; font-weight: bold; color: white;
+.header-center { 
+  display: flex; 
+  align-items: center; 
+  gap: 12px; 
+  position: absolute; 
+  left: 50%; 
+  transform: translateX(-50%); 
 }
-.app-header .app-title { font-size: 20px; font-weight: 700; letter-spacing: 0.5px; }
-.header-right { margin-left: auto; font-size: 14px; opacity: 0.95; font-weight: 500; }
+.app-header .logo { 
+  width: 40px; 
+  height: 40px; 
+  border-radius: 6px; 
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  font-size: 20px; 
+  font-weight: bold; 
+  color: white;
+}
+.app-header .app-title {
+   font-size: 20px; 
+   font-weight: 700; 
+   letter-spacing: 0.5px; 
+  }
 
 .app-footer {
   position: fixed; bottom: 0; left: 0; right: 0; height: 38px;
@@ -40,127 +80,400 @@ html, body { margin: 0; height: 100%; font-family: Arial, sans-serif; overflow: 
   box-shadow: 0 -2px 8px rgba(0,0,0,0.2);
 }
 
-/* Drawer */
-.drawer { position: fixed; top: 70px; left: 12px; z-index: 300; }
+/* Drawer - FIXED */
+.drawer { 
+    position: fixed; 
+    top: 70px; 
+    left: 12px; 
+    z-index: 300; 
+}
 .drawer-toggle { 
-  font-size: 20px; background: #fff; border: none; padding: 10px 12px; 
-  border-radius: 8px; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.15); transition: all 0.3s;
+  font-size: 20px; 
+  background: hwb(0 89% 9%); 
+  border: none; 
+  padding: 10px 12px; 
+  border-radius: 8px; 
+  cursor: pointer; 
+  box-shadow: 0 2px 8px #05934a26; 
+  transition: all 0.3s;
 }
-.drawer-toggle:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+.drawer-toggle:hover { 
+    transform: translateY(-2px); 
+    box-shadow: 0 4px 12px rgba(71, 170, 24, 0.2); 
+}
 .drawer-content { 
-  display: none; flex-direction: column; background: #fff; padding: 10px; 
-  margin-top: 8px; border-radius: 8px; box-shadow: 0 6px 20px rgba(0,0,0,0.15); min-width: 180px;
+  display: none; 
+  flex-direction: column; 
+  background: #091401; 
+  padding: 10px; 
+  margin-top: 8px; 
+  border-radius: 8px; 
+  box-shadow: 0 6px 20px rgba(239, 11, 42, 0.15); 
+  min-width: 40px;
+  max-width: 100px;
 }
-.drawer-content hr { margin: 8px 0; border: none; border-top: 1px solid #e0e0e0; }
+.drawer-content hr { 
+    margin: 8px 0; 
+    border: none; 
+    border-top: 1px solid #bbb6b6; 
+}
+
+/* Icon buttons - FIXED LAYOUT */
 .icon-btn { 
-  display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 6px;
-  background: #f8f9fa; cursor: pointer; border: 1px solid #e0e0e0; transition: all 0.2s;
-  font-size: 14px; color: #333; margin: 2px 0;
+  display: flex; 
+  align-items: center; 
+  justify-content: flex-start;
+  gap: 10px; 
+  padding: 10px 12px; 
+  border-radius: 6px;
+  background: #f8f9fa; 
+  cursor: pointer; 
+  border: 1px solid #e0e0e0; 
+  transition: all 0.2s;
+  font-size: 14px; 
+  color: #1c0f95; 
+  margin: 2px 0;
+  width: 100%;
+  text-align: left;
 }
-.icon-btn:hover { background: #e9ecef; transform: translateX(3px); }
-.icon-btn.active { background: #0d6efd; color: #fff; border-color: #0d6efd; }
+.icon-btn i { 
+  width: 10px; 
+  text-align: center; 
+  flex-shrink: 0;
+}
+.icon-btn:hover { 
+    background: #77c5ee; 
+    transform: translateX(3px); 
+}
+.icon-btn.active { 
+    background: #ecf3eca8; 
+    color: #e06b6b; 
+    border-color: #e40813; 
+}
+
+.upload-section, .basemap-group { 
+    display: flex; 
+    flex-direction: column; 
+    gap: 4px; 
+}
 
 /* Attribute Box */
 .attribute-box { 
-  display: none; position: fixed; bottom: 50px; right: 15px; width: 500px; max-height: 60vh;
-  background: rgba(20,20,20,0.95); color: #fff; border-radius: 10px; padding: 12px; z-index: 500;
-  flex-direction: column; box-shadow: 0 8px 32px rgba(0,0,0,0.5); resize: both; overflow: auto;
-  min-width: 350px; min-height: 200px;
+  display: none; 
+  position: fixed; 
+  bottom: 50px; 
+  right: 15px; 
+  width: 500px; 
+  max-height: 50vh;
+  background: #1d0404d8; 
+  color: #1d0e0e; 
+  border-radius: 10px; 
+  padding: 12px; 
+  z-index: 500;
+  flex-direction: column; 
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5); 
+  resize: both; 
+  overflow: auto;
+  min-width: 350px; 
+  min-height: 200px;
 }
-.attribute-box.minimized { height: 50px !important; max-height: 50px !important; overflow: hidden; resize: none; }
-.attribute-box.minimized .table-wrapper, .attribute-box.minimized .attr-footer { display: none !important; }
+.attribute-box.minimized { 
+    height: 50px !important; 
+    max-height: 50px !important; 
+    overflow: hidden; 
+    resize: none; 
+}
+.attribute-box.minimized .table-wrapper, .attribute-box.minimized .attr-footer { 
+    display: none !important; 
+}
 .attribute-box .box-header { 
-  display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;
-  cursor: grab; padding-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.1);
+  display: flex; 
+  justify-content: space-between; 
+  align-items: center; 
+  margin-bottom: 5px;
+  cursor: grab; 
+  padding-bottom: 5px; 
+  border-bottom: 1px solid rgba(255,255,255,0.1);
 }
-.attribute-box .box-header:active { cursor: grabbing; }
-.attribute-box h5 { margin: 0; font-size: 16px; color: #00e5ff; font-weight: 600; }
+.attribute-box .box-header:active { 
+    cursor: grabbing; 
+}
+.attribute-box h5 { 
+    margin: 0; 
+    font-size: 16px; 
+    color: #00e5ff; 
+    font-weight: 600; 
+}
 .attr-small-btn { 
-  background: none; border: none; color: #fff; cursor: pointer; font-size: 16px;
-  margin-left: 8px; padding: 4px 8px; border-radius: 4px; transition: all 0.2s;
+  background: none; 
+  border: none; 
+  color: #e4dfdf; 
+  cursor: pointer;
+  font-size: 16px;
+  margin-left: 8px; 
+  padding: 4px 8px; 
+  border-radius: 4px; 
+  transition: all 0.2s;
 }
-.attr-small-btn:hover { background: rgba(255,255,255,0.1); }
+.attr-small-btn:hover { 
+    background: rgba(53, 14, 195, 0.1); 
+}
 
-.table-wrapper { overflow: auto; max-height: calc(60vh - 120px); border-radius: 8px; margin-bottom: 10px; }
-.table-wrapper table { margin-bottom: 0; }
-.table-wrapper td[contenteditable="true"] { 
-  background: rgba(255,255,255,0.05); color: #fff; cursor: text; min-width: 80px;
+.table-wrapper { overflow: auto; 
+    max-height: calc(70vh - 140px); 
+    border-radius: 8px; 
+    margin-bottom: 10px; 
 }
-.table-wrapper td[contenteditable="true"]:focus { background: rgba(255,255,255,0.1); outline: 1px solid #00e5ff; }
-.table-wrapper .table { color: #fff; }
-.table-wrapper .table thead th { background: rgba(0,0,0,0.5); border-color: rgba(255,255,255,0.1); position: sticky; top: 0; z-index: 10; }
-.table-wrapper .table tbody tr:hover { background: rgba(255,255,255,0.05); }
-.table-wrapper .table tbody tr.table-active { background: rgba(13,110,253,0.3) !important; }
+.table-wrapper table { 
+    margin-bottom: 0; 
+}
+.table-wrapper td[contenteditable="true"] { 
+  background: rgba(255,255,255,0.05); 
+  color: #dad6dfdb; 
+  cursor: text; 
+  min-width: 80px;
+}
+.table-wrapper td[contenteditable="true"]:focus { 
+    background: rgba(255,255,255,0.1); 
+    outline: 1px solid #00e5ff; 
+}
+.table-wrapper .table { 
+    color: #f3e9e9; 
+}
+.table-wrapper .table thead th { 
+    background: rgba(0,0,0,0.5); 
+    border-color: rgba(255,255,255,0.1); 
+    position: sticky; 
+    top: 0; 
+    z-index: 10; 
+    font-size: 13px; 
+}
+.table-wrapper .table tbody tr:hover { 
+    background: rgba(255,255,255,0.05);
+ }
+.table-wrapper .table tbody tr.table-active { 
+    background: rgba(13,110,253,0.3) !important; 
+}
+.table-wrapper .table tbody td {
+     font-size: 13px; 
+    }
+
+/* Special column types */
+.table-wrapper input[type="checkbox"] { 
+    cursor: pointer; 
+    width: 18px; 
+    height: 18px; 
+}
+.table-wrapper select.form-select-sm { 
+    font-size: 12px; 
+    padding: 2px 6px; 
+    background: rgba(255,255,255,0.1); 
+    color: #f6f3f3; 
+    border: 1px solid rgba(255,255,255,0.2); 
+}
+.table-wrapper .image-cell { 
+    max-width: 100px; 
+    max-height: 60px; 
+    cursor: pointer; 
+    border-radius: 4px; 
+}
 
 .attr-footer { 
-    display: flex; 
-    gap: 8px; 
-    justify-content: flex-end; 
-    padding-top: 8px; 
-    border-top: 1px solid rgba(255,255,255,0.1); 
+  display: flex; 
+  gap: 8px; 
+  justify-content: flex-end; 
+  padding-top: 8px; 
+  border-top: 1px solid rgba(255,255,255,0.1); 
+  flex-wrap: wrap; 
 }
 .attr-footer .btn { 
-    font-size: 13px; 
-    font-weight: 500; 
-}
-.app-footer span {
-    margin: 0 5px;
+  font-size: 13px; 
+  font-weight: 500; 
 }
 
 /* Editor Box */
 .editor-box { 
-  display: none; position: fixed; bottom: 50px; left: 15px; background: rgba(255,255,255,0.98);
-  padding: 12px; border-radius: 10px; z-index: 500; box-shadow: 0 8px 32px rgba(0,0,0,0.2); min-width: 220px;
+  display: none; 
+  position: fixed; 
+  bottom: 50px; 
+  left: 15px; 
+  background: rgba(214, 227, 97, 0.98);
+  padding: 12px; 
+  border-radius: 10px; 
+  z-index: 500; 
+  box-shadow: 0 8px 32px rgba(0,0,0,0.2); 
+  min-width: 220px;
 }
-.editor-box .box-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid rgba(0,0,0,0.1); }
-.editor-buttons { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+.editor-box .box-header { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    margin-bottom: 10px; 
+    padding-bottom: 8px; 
+    border-bottom: 1px solid rgba(0,0,0,0.1); 
+}
+.editor-buttons { display: flex; 
+    gap: 8px; 
+    flex-wrap: wrap; 
+    justify-content: center; 
+}
 .editor-btn { 
-  width: 48px; height: 48px; border: none; border-radius: 8px; cursor: pointer; font-size: 18px;
-  display: flex; align-items: center; justify-content: center; background: #0d6efd; color: #fff;
-  transition: all 0.2s; box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  width: 48px; 
+  height: 48px; 
+  border: none; 
+  border-radius: 8px; 
+  cursor: pointer; 
+  font-size: 18px;
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  background: #0d6efd; color: #fff;
+  transition: all 0.2s; 
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
 }
-.editor-btn:hover { opacity: 0.9; transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
-.editor-btn.active { background: #198754; }
+.editor-btn:hover { 
+  opacity: 0.9; 
+  transform: translateY(-2px); 
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2); 
+}
+.editor-btn.active { 
+  background: #198754; 
+}
 
 /* Search */
-.search-bar { position: fixed; top: 70px; left: 50%; transform: translateX(-50%); z-index: 450; }
-.search-bar input { 
-  width: 400px; padding: 12px 20px; border-radius: 25px; border: 1px solid #ddd;
-  background: #fff; font-size: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.15); transition: all 0.3s;
+.search-bar { 
+  position: fixed; 
+  top: 70px; 
+  left: 50%; 
+  transform: translateX(-50%); 
+  z-index: 450; 
 }
-.search-bar input:focus { outline: none; border-color: #0d6efd; box-shadow: 0 4px 12px rgba(13,110,253,0.3); }
+.search-bar input { 
+  width: 400px; 
+  padding: 12px 20px; 
+  border-radius: 25px; 
+  border: 1px solid #ddd;
+  background: #fff; 
+  font-size: 15px; 
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15); 
+  transition: all 0.3s;
+}
+.search-bar input:focus { 
+  outline: none; 
+  border-color: #121416; 
+  box-shadow: 0 4px 12px rgba(13,110,253,0.3);
+ }
 
 .suggestion-box { 
   position: absolute; top: calc(100% + 8px); left: 50%; transform: translateX(-50%); width: 400px;
   max-height: 300px; overflow-y: auto; background: #fff; border: 1px solid #ddd; border-radius: 12px;
   z-index: 460; display: none; box-shadow: 0 8px 24px rgba(0,0,0,0.2);
 }
-.suggestion-item { padding: 12px 16px; cursor: pointer; font-size: 14px; border-bottom: 1px solid rgba(0,0,0,0.06); transition: all 0.2s; }
-.suggestion-item:last-child { border-bottom: none; }
-.suggestion-item:hover, .suggestion-item.active { background: #0d6efd; color: #fff; }
+.suggestion-item { 
+  padding: 12px 16px; 
+  cursor: pointer; 
+  font-size: 14px; 
+  border-bottom: 1px solid rgba(0,0,0,0.06); 
+  transition: all 0.2s; 
+}
+.suggestion-item:last-child { 
+  border-bottom: none; 
+}
+.suggestion-item:hover, .suggestion-item.active { 
+  background: #0d6efd; 
+  color: #fff; 
+}
 
 /* Popup */
 .popup { 
-  display: none; position: absolute; background: rgba(0,0,0,0.9); color: #fff;
-  padding: 8px 12px; border-radius: 6px; font-size: 13px; z-index: 470;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.4); max-width: 300px; pointer-events: none;
+  display: none; 
+  position: absolute; 
+  background: rgba(0,0,0,0.9); 
+  color: #fff;
+  padding: 8px 12px; 
+  border-radius: 6px; 
+  font-size: 13px; 
+  z-index: 470;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4); 
+  max-width: 300px; 
+  pointer-events: none;
 }
 
 /* Zoom Controls */
-.zoom-controls { position: fixed; top: 70px; right: 15px; z-index: 310; display: flex; flex-direction: column; gap: 8px; }
+.zoom-controls { 
+  position: fixed; 
+  top: 70px; 
+  right: 15px; 
+  z-index: 310; 
+  display: flex; 
+  flex-direction: column; 
+  gap: 8px; }
 .zoom-btn { 
-  width: 40px; height: 40px; border-radius: 8px; border: none; cursor: pointer; background: #fff;
+  width: 40px; 
+  height: 40px; 
+  border-radius: 8px; 
+  border: none; 
+  cursor: pointer; 
+  background: #f6f4f4;
   box-shadow: 0 2px 8px rgba(0,0,0,0.15); transition: all 0.2s; font-size: 16px; color: #333;
 }
-.zoom-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+.zoom-btn:hover { 
+  transform: translateY(-2px); 
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2); 
+}
+
+/* Modal for adding attributes with types */
+.modal-backdrop.show { 
+  opacity: 0.5; 
+}
+.modal-content { 
+  background: #1a1a1a; 
+  color: #fff; 
+}
+.modal-header { 
+  border-bottom-color: rgba(255,255,255,0.1); 
+}
+.modal-footer { 
+  border-top-color: rgba(61, 60, 61, 0.1); 
+}
+.modal-body .form-control, .modal-body .form-select { 
+  background: rgba(255,255,255,0.1); 
+  color: #fff; 
+  border-color: rgba(255,255,255,0.2); 
+}
+.modal-body .form-control:focus, .modal-body .form-select:focus { 
+  background: rgba(255,255,255,0.15); 
+  color: #fff; 
+  border-color: #00e5ff; 
+}
+.modal-body label { 
+  color: #00e5ff; 
+  font-weight: 500; 
+  margin-top: 10px; 
+}
 
 @media(max-width: 768px) {
-  .search-bar input { width: 250px; padding: 10px 16px; }
-  .suggestion-box { width: 250px; }
-  .attribute-box { width: 90%; right: 5%; left: 5%; bottom: 50px; }
-  .editor-box { left: 5%; right: 5%; width: auto; }
-  .header-right { display: none; }
-  .app-title { font-size: 16px !important; }
+  .search-bar input { 
+    width: 250px; 
+    padding: 10px 16px; 
+  }
+  .suggestion-box { 
+    width: 250px; 
+  }
+  .attribute-box { 
+    width: 90%; 
+    right: 5%; 
+    left: 5%; 
+    bottom: 50px;
+   }
+  .editor-box { 
+    left: 5%; 
+    right: 5%; 
+    width: auto; 
+  }
+  .app-title { 
+    font-size: 16px !important; 
+  }
 }
 </style>
 </head>
@@ -170,10 +483,8 @@ html, body { margin: 0; height: 100%; font-family: Arial, sans-serif; overflow: 
 <header class="app-header">
   <div class="header-center">
     <img src="images/logo.png" class="logo" alt="Logo">
-
     <strong class="app-title">Map Viewer</strong>
   </div>
-  <!--<div class="header-right">Editable Map</div>-->
 </header>
 
 <!-- MAP -->
@@ -183,25 +494,45 @@ html, body { margin: 0; height: 100%; font-family: Arial, sans-serif; overflow: 
 <div id="drawer" class="drawer">
   <button id="drawerToggle" class="drawer-toggle" title="Menu"><i class="fas fa-bars"></i></button>
   <div class="drawer-content">
-    <button id="homeBtn" class="icon-btn" title="Home"><i class="fas fa-home"></i></button>
+    <button id="homeBtn" class="icon-btn" title="Home">
+      <i class="fas fa-home"></i> 
+    </button>
     <hr>
     <div class="upload-section">
-      <button id="uploadShpBtn" class="icon-btn" title="Upload Shapefile"><i class="fas fa-file-zipper"></i></button>
-      <button id="uploadGeoJsonBtn" class="icon-btn" title="Upload GeoJSON"><i class="fas fa-file-code"></i></button>
+      <button id="uploadShpBtn" class="icon-btn" title="Upload Shapefile">
+        <i class="fas fa-file-zipper"></i>
+      </button>
+      <button id="uploadGeoJsonBtn" class="icon-btn" title="Upload GeoJSON">
+        <i class="fas fa-file-code"></i> 
+      </button>
+      <button id="uploadKmlBtn" class="icon-btn" title="Upload KML">
+        <i class="fas fa-map-pin"></i> 
+      </button>
       <input type="file" id="fileInput" hidden>
     </div>
     <hr>
     <div class="basemap-group">
-      <button id="osmBtn" class="icon-btn active" title="OpenStreetMap"><i class="fas fa-globe"></i></button>
-      <button id="topoBtn" class="icon-btn" title="Topographic"><i class="fas fa-mountain"></i></button>
-      <button id="stamenBtn" class="icon-btn" title="Stamen"><i class="fas fa-map"></i></button>
-      <button id="cartoBtn" class="icon-btn" title="Carto"><i class="fas fa-map-marked"></i></button>
-      <button id="esriBtn" class="icon-btn" title="Satellite"><i class="fas fa-satellite"></i></button>
+      <button id="osmBtn" class="icon-btn active" title="OpenStreetMap">
+        <i class="fas fa-globe"></i>
+      </button>
+      <button id="topoBtn" class="icon-btn" title="Topographic">
+        <i class="fas fa-mountain"></i> 
+      </button>
+      <button id="cartoBtn" class="icon-btn" title="Light Map">
+        <i class="fas fa-map-marked"></i> 
+      </button>
+      <button id="esriBtn" class="icon-btn" title="Satellite">
+        <i class="fas fa-satellite"></i> 
+      </button>
     </div>
     <hr>
-    <button id="toggleAttributes" class="icon-btn" title="Attributes"><i class="fas fa-table"></i></button>
+    <button id="toggleAttributes" class="icon-btn" title="Attributes">
+      <i class="fas fa-table"></i>
+    </button>
     <hr>
-    <button id="toggleEditor" class="icon-btn" title="Editor Tools"><i class="fas fa-pencil-alt"></i></button>
+    <button id="toggleEditor" class="icon-btn" title="Editor Tools">
+      <i class="fas fa-pencil-alt"></i> 
+    </button>
   </div>
 </div>
 
@@ -210,7 +541,7 @@ html, body { margin: 0; height: 100%; font-family: Arial, sans-serif; overflow: 
   <div class="box-header">
     <div style="display:flex; align-items:center; gap:8px;">
       <h5>Attributes</h5>
-      <button id="addAttrBtn" class="attr-small-btn" title="Add Attribute"><i class="fas fa-plus"></i></button>
+      <button id="addAttrBtn" class="attr-small-btn" title="Add Custom Attribute"><i class="fas fa-plus"></i></button>
     </div>
     <div>
       <button id="minimizeAttr" class="attr-small-btn" title="Minimize"><i class="fas fa-minus"></i></button>
@@ -264,10 +595,42 @@ html, body { margin: 0; height: 100%; font-family: Arial, sans-serif; overflow: 
 <div id="popup" class="popup"></div>
 
 <!-- FOOTER -->
-<footer class="app-footer">
-    © <span id="year"> </span>  Map Viewer
-</footer>
+<footer class="app-footer">© <span id="year"></span> Map Viewer - Enhanced GIS</footer>
 
+<!-- ADD ATTRIBUTE MODAL -->
+<div class="modal fade" id="addAttrModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Add Custom Attribute</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <label>Attribute Name</label>
+        <input type="text" id="attrName" class="form-control" placeholder="e.g., status, priority">
+        
+        <label>Data Type</label>
+        <select id="attrType" class="form-select">
+          <option value="text">Text</option>
+          <option value="number">Number</option>
+          <option value="checkbox">Checkbox</option>
+          <option value="select">Dropdown</option>
+          <option value="date">Date</option>
+          <option value="image">Image URL</option>
+        </select>
+        
+        <div id="selectOptionsDiv" style="display:none; margin-top:10px;">
+          <label>Dropdown Options (comma-separated)</label>
+          <input type="text" id="selectOptions" class="form-control" placeholder="e.g., Low, Medium, High">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" id="confirmAddAttr">Add Attribute</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- Libraries -->
 <script src="https://cdn.jsdelivr.net/npm/ol@10.7.0/dist/ol.js"></script>
@@ -281,15 +644,15 @@ document.getElementById('year').innerText = new Date().getFullYear();
 /*   MAP INITIALIZATION      */
 /* ========================= */
 
-// Base Layers
+// Base Layers with updated URLs
 const osmLayer = new ol.layer.Tile({ source: new ol.source.OSM(), visible: true });
 const topoLayer = new ol.layer.Tile({ source: new ol.source.XYZ({ url: "https://{a-c}.tile.opentopomap.org/{z}/{x}/{y}.png" }), visible: false });
-const stamenLayer = new ol.layer.Tile({ source: new ol.source.XYZ({ url: "https://stamen-tiles.a.ssl.fastly.net/toner/{z}/{x}/{y}.png" }), visible: false });
-const cartoLayer = new ol.layer.Tile({ source: new ol.source.XYZ({ url: "https://cartodb-basemaps-a.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png" }), visible: false });
+const cartoLayer = new ol.layer.Tile({ source: new ol.source.XYZ({ url: "https://{a-d}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png" }), visible: false });
 const esriLayer = new ol.layer.Tile({ source: new ol.source.XYZ({ url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}" }), visible: false });
 
-// Vector Layers (GeoJSON z=20, Shapefile z=30, User z=40)
+// Vector Layers (GeoJSON z=20, Shapefile z=30, KML z=25, User z=40)
 const geojsonLayer = new ol.layer.Vector({ source: new ol.source.Vector(), zIndex: 20 });
+const kmlLayer = new ol.layer.Vector({ source: new ol.source.Vector(), zIndex: 25 });
 const shapefileLayer = new ol.layer.Vector({ source: new ol.source.Vector(), zIndex: 30 });
 const vectorSource = new ol.source.Vector();
 const vectorLayer = new ol.layer.Vector({ source: vectorSource, zIndex: 40 });
@@ -309,11 +672,12 @@ function featureStyle(feature) {
 vectorLayer.setStyle(featureStyle);
 shapefileLayer.setStyle(featureStyle);
 geojsonLayer.setStyle(featureStyle);
+kmlLayer.setStyle(featureStyle);
 
 // Map
 const map = new ol.Map({
   target: "map",
-  layers: [osmLayer, topoLayer, stamenLayer, cartoLayer, esriLayer, geojsonLayer, shapefileLayer, vectorLayer, userLayer],
+  layers: [osmLayer, topoLayer, cartoLayer, esriLayer, geojsonLayer, kmlLayer, shapefileLayer, vectorLayer, userLayer],
   view: new ol.View({ center: ol.proj.fromLonLat([72.8777, 19.0760]), zoom: 12 }),
   controls: []
 });
@@ -323,8 +687,13 @@ function randomColor() { return '#' + Math.floor(Math.random()*0xFFFFFF).toStrin
 function safeId(p='fid') { return `${p}-${Date.now()}-${Math.random().toString(36).slice(2,8)}`; }
 function escapeHtml(t) { return (t+'').replace(/[&<>"'`=\/]/g, s => '&#'+s.charCodeAt(0)+';'); }
 
+// Custom attributes with types
 let customAttributes = [];
-try { customAttributes = JSON.parse(localStorage.getItem('customAttributes')||'[]')||[]; } catch(e) { customAttributes = []; }
+let attributeTypes = {};
+try { 
+  customAttributes = JSON.parse(localStorage.getItem('customAttributes')||'[]')||[]; 
+  attributeTypes = JSON.parse(localStorage.getItem('attributeTypes')||'{}')|| {};
+} catch(e) { customAttributes = []; attributeTypes = {}; }
 
 /* ========================= */
 /*   POPUP                   */
@@ -340,7 +709,12 @@ function openPopupForFeature(f) {
   overlay.setPosition(coord);
   const props = Object.assign({}, f.getProperties());
   delete props.geometry;
-  popup.innerHTML = Object.entries(props).map(([k,v])=>`<b>${escapeHtml(k)}</b>: ${escapeHtml(String(v||''))}`).join('<br>');
+  popup.innerHTML = Object.entries(props).map(([k,v])=>{
+    if (attributeTypes[k] === 'image' && v) {
+      return `<b>${escapeHtml(k)}</b>: <br><img src="${escapeHtml(v)}" style="max-width:150px; max-height:100px; border-radius:4px;">`;
+    }
+    return `<b>${escapeHtml(k)}</b>: ${escapeHtml(String(v||''))}`;
+  }).join('<br>');
   popup.style.display = 'block';
 }
 
@@ -393,13 +767,12 @@ document.getElementById("minimizeAttr").onclick = () => {
 document.getElementById("homeBtn").onclick = () => map.getView().animate({ center: ol.proj.fromLonLat([72.8777,19.0760]), zoom: 12, duration: 600 });
 
 function setBase(layer) {
-  [osmLayer, topoLayer, stamenLayer, cartoLayer, esriLayer].forEach(l => l.setVisible(l === layer));
+  [osmLayer, topoLayer, cartoLayer, esriLayer].forEach(l => l.setVisible(l === layer));
   document.querySelectorAll('.basemap-group .icon-btn').forEach(b => b.classList.remove('active'));
 }
 
 document.getElementById("osmBtn").onclick = () => { setBase(osmLayer); document.getElementById("osmBtn").classList.add('active'); };
 document.getElementById("topoBtn").onclick = () => { setBase(topoLayer); document.getElementById("topoBtn").classList.add('active'); };
-document.getElementById("stamenBtn").onclick = () => { setBase(stamenLayer); document.getElementById("stamenBtn").classList.add('active'); };
 document.getElementById("cartoBtn").onclick = () => { setBase(cartoLayer); document.getElementById("cartoBtn").classList.add('active'); };
 document.getElementById("esriBtn").onclick = () => { setBase(esriLayer); document.getElementById("esriBtn").classList.add('active'); };
 
@@ -465,10 +838,11 @@ document.getElementById("locationBtn").onclick = () => {
 };
 
 /* ========================= */
-/*   FILE UPLOAD             */
+/*   FILE UPLOAD (SHP/JSON/KML) */
 /* ========================= */
 document.getElementById("uploadShpBtn").onclick = () => { fileInput.accept = '.zip'; fileInput.dataset.type = 'shapefile'; fileInput.click(); };
 document.getElementById("uploadGeoJsonBtn").onclick = () => { fileInput.accept = '.geojson,.json'; fileInput.dataset.type = 'geojson'; fileInput.click(); };
+document.getElementById("uploadKmlBtn").onclick = () => { fileInput.accept = '.kml'; fileInput.dataset.type = 'kml'; fileInput.click(); };
 
 fileInput.onchange = async (e) => {
   const f = e.target.files[0]; if (!f) return;
@@ -481,24 +855,22 @@ fileInput.onchange = async (e) => {
       handleLoaded(geo, 'shapefile');
     } else if (name.endsWith('.geojson') || name.endsWith('.json')) {
       handleLoaded(JSON.parse(await f.text()), 'geojson');
+    } else if (name.endsWith('.kml')) {
+      const kmlText = await f.text();
+      const kmlFormat = new ol.format.KML();
+      const features = kmlFormat.readFeatures(kmlText, { featureProjection: 'EPSG:3857' });
+      handleLoadedFeatures(features, 'kml');
     } else {
-      alert("Unsupported file. Use ZIP (shapefile) or GeoJSON.");
+      alert("Unsupported file. Use ZIP (shapefile), GeoJSON, or KML.");
     }
   } catch (err) { console.error(err); alert("Failed to load: " + (err.message || err)); }
   fileInput.value = "";
 };
 
-function handleLoaded(geo, type='geojson') {
-  const fmt = new ol.format.GeoJSON();
-  let features = [];
-  if (Array.isArray(geo)) {
-    geo.forEach(g => features = features.concat(fmt.readFeatures(g, { featureProjection: "EPSG:3857" })));
-  } else {
-    features = fmt.readFeatures(geo, { featureProjection: "EPSG:3857" });
-  }
+function handleLoadedFeatures(features, type='geojson') {
   if (!features.length) return alert("No features found");
 
-  const sourceFeatureCount = vectorSource.getFeatures().length + shapefileLayer.getSource().getFeatures().length + geojsonLayer.getSource().getFeatures().length;
+  const sourceFeatureCount = vectorSource.getFeatures().length + shapefileLayer.getSource().getFeatures().length + geojsonLayer.getSource().getFeatures().length + kmlLayer.getSource().getFeatures().length;
 
   features.forEach((f,i) => {
     const p = f.getProperties();
@@ -510,12 +882,18 @@ function handleLoaded(geo, type='geojson') {
 
   if (type === 'shapefile') {
     shapefileLayer.getSource().addFeatures(features);
+  } else if (type === 'kml') {
+    kmlLayer.getSource().addFeatures(features);
   } else {
     geojsonLayer.getSource().addFeatures(features);
   }
 
   try {
-    const source = type === 'shapefile' ? shapefileLayer.getSource() : geojsonLayer.getSource();
+    let source;
+    if (type === 'shapefile') source = shapefileLayer.getSource();
+    else if (type === 'kml') source = kmlLayer.getSource();
+    else source = geojsonLayer.getSource();
+    
     const extent = source.getExtent();
     if (extent && extent.every(v => isFinite(v))) {
       map.getView().fit(extent, { padding: [50,50,50,50], duration: 700, maxZoom: 16 });
@@ -527,13 +905,24 @@ function handleLoaded(geo, type='geojson') {
   showTempPopup(`Loaded ${features.length} features`);
 }
 
+function handleLoaded(geo, type='geojson') {
+  const fmt = new ol.format.GeoJSON();
+  let features = [];
+  if (Array.isArray(geo)) {
+    geo.forEach(g => features = features.concat(fmt.readFeatures(g, { featureProjection: "EPSG:3857" })));
+  } else {
+    features = fmt.readFeatures(geo, { featureProjection: "EPSG:3857" });
+  }
+  handleLoadedFeatures(features, type);
+}
+
 /* ========================= */
 /*   SELECTION               */
 /* ========================= */
 let selectedFeature = null;
 
 const selectInteraction = new ol.interaction.Select({
-  layers: [vectorLayer, shapefileLayer, geojsonLayer],
+  layers: [vectorLayer, shapefileLayer, geojsonLayer, kmlLayer],
   style: new ol.style.Style({
     stroke: new ol.style.Stroke({ color: '#ffcc00', width: 4 }),
     fill: new ol.style.Fill({ color: '#ffcc0033' }),
@@ -559,9 +948,11 @@ function findFeatureSource(feature) {
   if (vectorSource.getFeatureById(feature.getId())) return vectorSource;
   if (shapefileLayer.getSource().getFeatureById(feature.getId())) return shapefileLayer.getSource();
   if (geojsonLayer.getSource().getFeatureById(feature.getId())) return geojsonLayer.getSource();
+  if (kmlLayer.getSource().getFeatureById(feature.getId())) return kmlLayer.getSource();
   if (vectorSource.getFeatures().includes(feature)) return vectorSource;
   if (shapefileLayer.getSource().getFeatures().includes(feature)) return shapefileLayer.getSource();
   if (geojsonLayer.getSource().getFeatures().includes(feature)) return geojsonLayer.getSource();
+  if (kmlLayer.getSource().getFeatures().includes(feature)) return kmlLayer.getSource();
   return null;
 }
 
@@ -571,6 +962,8 @@ function findByIdAcrossSources(id) {
   f = shapefileLayer.getSource().getFeatureById(id);
   if (f) return f;
   f = geojsonLayer.getSource().getFeatureById(id);
+  if (f) return f;
+  f = kmlLayer.getSource().getFeatureById(id);
   return f;
 }
 
@@ -581,7 +974,7 @@ function buildAttributeTable() {
   attrHead.innerHTML = '';
   attrBody.innerHTML = '';
 
-  const feats = [].concat(vectorSource.getFeatures(), shapefileLayer.getSource().getFeatures(), geojsonLayer.getSource().getFeatures());
+  const feats = [].concat(vectorSource.getFeatures(), shapefileLayer.getSource().getFeatures(), geojsonLayer.getSource().getFeatures(), kmlLayer.getSource().getFeatures());
 
   if (!feats.length) {
     attrHead.innerHTML = '<tr><th>No features</th></tr>';
@@ -612,14 +1005,55 @@ function buildAttributeTable() {
       highlightRowForFeature(f);
       if (attributeBox.style.display !== 'flex') attributeBox.style.display = 'flex';
     };
+    
     keys.forEach(k => {
       if (f.get(k) === undefined) f.set(k, '');
       const td = document.createElement('td');
-      td.contentEditable = true;
       td.dataset.key = k;
-      td.innerText = f.get(k) || '';
+      
+      const attrType = attributeTypes[k] || 'text';
+      
+      if (attrType === 'checkbox') {
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.checked = f.get(k) === true || f.get(k) === 'true';
+        checkbox.onchange = () => f.set(k, checkbox.checked);
+        td.appendChild(checkbox);
+      } else if (attrType === 'select') {
+        const select = document.createElement('select');
+        select.className = 'form-select form-select-sm';
+        const options = attributeTypes[k + '_options'] || [];
+        select.innerHTML = '<option value="">--Select--</option>' + options.map(opt => 
+          `<option value="${escapeHtml(opt)}" ${f.get(k) === opt ? 'selected' : ''}>${escapeHtml(opt)}</option>`
+        ).join('');
+        select.onchange = () => f.set(k, select.value);
+        td.appendChild(select);
+      } else if (attrType === 'image') {
+        const val = f.get(k) || '';
+        if (val) {
+          const img = document.createElement('img');
+          img.src = val;
+          img.className = 'image-cell';
+          img.onclick = () => {
+            const newUrl = prompt('Enter image URL:', val);
+            if (newUrl !== null) {
+              f.set(k, newUrl);
+              buildAttributeTable();
+            }
+          };
+          td.appendChild(img);
+        } else {
+          td.contentEditable = true;
+          td.innerText = '';
+        }
+      } else {
+        td.contentEditable = true;
+        td.innerText = f.get(k) || '';
+      }
+      
       tr.appendChild(td);
     });
+    
     const actionTd = document.createElement('td');
     actionTd.innerHTML = `<button class="btn btn-sm btn-outline-primary btn-focus">Center</button> <button class="btn btn-sm btn-outline-danger btn-del-feature">Delete</button>`;
     tr.appendChild(actionTd);
@@ -669,9 +1103,20 @@ document.getElementById("saveChangesBtn").onclick = () => {
     const f = findByIdAcrossSources(fid);
     if (!f) return;
     const cells = Array.from(row.querySelectorAll('td[data-key]'));
-    const newProps = {};
-    cells.forEach(td => { if (td.dataset.key) newProps[td.dataset.key] = td.innerText.trim(); });
-    f.setProperties(Object.assign({}, f.getProperties(), newProps), true);
+    cells.forEach(td => {
+      const key = td.dataset.key;
+      const attrType = attributeTypes[key] || 'text';
+      
+      if (attrType === 'checkbox') {
+        const checkbox = td.querySelector('input[type="checkbox"]');
+        if (checkbox) f.set(key, checkbox.checked);
+      } else if (attrType === 'select') {
+        const select = td.querySelector('select');
+        if (select) f.set(key, select.value);
+      } else {
+        f.set(key, td.innerText.trim());
+      }
+    });
   });
   showTempPopup('All edits saved');
   buildAttributeTable();
@@ -696,7 +1141,7 @@ document.getElementById("centerSelectedBtn").onclick = () => {
 
 document.getElementById("exportAllBtn").onclick = () => {
   const fmt = new ol.format.GeoJSON();
-  const allFeatures = [].concat(vectorSource.getFeatures(), shapefileLayer.getSource().getFeatures(), geojsonLayer.getSource().getFeatures());
+  const allFeatures = [].concat(vectorSource.getFeatures(), shapefileLayer.getSource().getFeatures(), geojsonLayer.getSource().getFeatures(), kmlLayer.getSource().getFeatures());
   if (!allFeatures.length) return alert('No features to export');
   const data = JSON.stringify(fmt.writeFeaturesObject(allFeatures, { featureProjection: 'EPSG:3857' }), null, 2);
   const blob = new Blob([data], { type: 'application/json' });
@@ -768,6 +1213,7 @@ function startModify() {
   vectorSource.getFeatures().forEach(f => modifySource.push(f));
   shapefileLayer.getSource().getFeatures().forEach(f => modifySource.push(f));
   geojsonLayer.getSource().getFeatures().forEach(f => modifySource.push(f));
+  kmlLayer.getSource().getFeatures().forEach(f => modifySource.push(f));
   modifyInteraction = new ol.interaction.Modify({ features: modifySource });
   map.addInteraction(modifyInteraction);
   modifyInteraction.on('modifyend', () => { buildAttributeTable(); saveToLocal(); });
@@ -792,17 +1238,20 @@ function saveToLocal() {
     const data = {
       vectorFeatures: fmt.writeFeaturesObject(vectorSource.getFeatures(), { featureProjection: 'EPSG:3857' }),
       shapefileFeatures: fmt.writeFeaturesObject(shapefileLayer.getSource().getFeatures(), { featureProjection: 'EPSG:3857' }),
-      geojsonFeatures: fmt.writeFeaturesObject(geojsonLayer.getSource().getFeatures(), { featureProjection: 'EPSG:3857' })
+      geojsonFeatures: fmt.writeFeaturesObject(geojsonLayer.getSource().getFeatures(), { featureProjection: 'EPSG:3857' }),
+      kmlFeatures: fmt.writeFeaturesObject(kmlLayer.getSource().getFeatures(), { featureProjection: 'EPSG:3857' })
     };
     localStorage.setItem("savedFeatures", JSON.stringify(data));
     localStorage.setItem("customAttributes", JSON.stringify(customAttributes||[]));
+    localStorage.setItem("attributeTypes", JSON.stringify(attributeTypes||{}));
   } catch(e) { console.error('Save error', e); }
 }
 
 function loadFromLocal() {
   try {
     customAttributes = JSON.parse(localStorage.getItem('customAttributes')||'[]')||[];
-  } catch(e) { customAttributes = []; }
+    attributeTypes = JSON.parse(localStorage.getItem('attributeTypes')||'{}')||{};
+  } catch(e) { customAttributes = []; attributeTypes = {}; }
   
   const data = localStorage.getItem("savedFeatures");
   if (!data) return;
@@ -811,26 +1260,25 @@ function loadFromLocal() {
     const fmt = new ol.format.GeoJSON();
     const parsed = JSON.parse(data);
     
-    if (parsed.vectorFeatures || parsed.shapefileFeatures || parsed.geojsonFeatures) {
-      if (parsed.vectorFeatures && parsed.vectorFeatures.features) {
-        const feats = fmt.readFeatures(parsed.vectorFeatures, { featureProjection: 'EPSG:3857' });
-        feats.forEach(f => customAttributes.forEach(k => { if (f.get(k) === undefined) f.set(k, ''); }));
-        vectorSource.addFeatures(feats);
-      }
-      if (parsed.shapefileFeatures && parsed.shapefileFeatures.features) {
-        const feats = fmt.readFeatures(parsed.shapefileFeatures, { featureProjection: 'EPSG:3857' });
-        feats.forEach(f => customAttributes.forEach(k => { if (f.get(k) === undefined) f.set(k, ''); }));
-        shapefileLayer.getSource().addFeatures(feats);
-      }
-      if (parsed.geojsonFeatures && parsed.geojsonFeatures.features) {
-        const feats = fmt.readFeatures(parsed.geojsonFeatures, { featureProjection: 'EPSG:3857' });
-        feats.forEach(f => customAttributes.forEach(k => { if (f.get(k) === undefined) f.set(k, ''); }));
-        geojsonLayer.getSource().addFeatures(feats);
-      }
-    } else {
-      const feats = fmt.readFeatures(parsed, { featureProjection: 'EPSG:3857' });
+    if (parsed.vectorFeatures && parsed.vectorFeatures.features) {
+      const feats = fmt.readFeatures(parsed.vectorFeatures, { featureProjection: 'EPSG:3857' });
       feats.forEach(f => customAttributes.forEach(k => { if (f.get(k) === undefined) f.set(k, ''); }));
       vectorSource.addFeatures(feats);
+    }
+    if (parsed.shapefileFeatures && parsed.shapefileFeatures.features) {
+      const feats = fmt.readFeatures(parsed.shapefileFeatures, { featureProjection: 'EPSG:3857' });
+      feats.forEach(f => customAttributes.forEach(k => { if (f.get(k) === undefined) f.set(k, ''); }));
+      shapefileLayer.getSource().addFeatures(feats);
+    }
+    if (parsed.geojsonFeatures && parsed.geojsonFeatures.features) {
+      const feats = fmt.readFeatures(parsed.geojsonFeatures, { featureProjection: 'EPSG:3857' });
+      feats.forEach(f => customAttributes.forEach(k => { if (f.get(k) === undefined) f.set(k, ''); }));
+      geojsonLayer.getSource().addFeatures(feats);
+    }
+    if (parsed.kmlFeatures && parsed.kmlFeatures.features) {
+      const feats = fmt.readFeatures(parsed.kmlFeatures, { featureProjection: 'EPSG:3857' });
+      feats.forEach(f => customAttributes.forEach(k => { if (f.get(k) === undefined) f.set(k, ''); }));
+      kmlLayer.getSource().addFeatures(feats);
     }
   } catch(e) { console.error('Load error', e); }
 }
@@ -838,23 +1286,50 @@ function loadFromLocal() {
 loadFromLocal();
 
 /* ========================= */
-/*   CUSTOM ATTRIBUTES       */
+/*   ADD CUSTOM ATTRIBUTE MODAL */
 /* ========================= */
-document.getElementById("addAttrBtn").addEventListener('click', () => {
-  const name = prompt("Enter attribute name:");
-  if (!name) return;
-  const key = name.trim();
-  if (!key) return;
-  const exists = customAttributes.find(k => k.toLowerCase() === key.toLowerCase());
+const addAttrModal = new bootstrap.Modal(document.getElementById('addAttrModal'));
+
+document.getElementById("addAttrBtn").onclick = () => {
+  document.getElementById('attrName').value = '';
+  document.getElementById('attrType').value = 'text';
+  document.getElementById('selectOptionsDiv').style.display = 'none';
+  addAttrModal.show();
+};
+
+document.getElementById('attrType').onchange = function() {
+  document.getElementById('selectOptionsDiv').style.display = this.value === 'select' ? 'block' : 'none';
+};
+
+document.getElementById("confirmAddAttr").onclick = () => {
+  const name = document.getElementById('attrName').value.trim();
+  const type = document.getElementById('attrType').value;
+  
+  if (!name) { alert('Please enter attribute name'); return; }
+  
+  const exists = customAttributes.find(k => k.toLowerCase() === name.toLowerCase());
   if (exists) { alert("Attribute already exists."); return; }
-  customAttributes.push(key);
-  [].concat(vectorSource.getFeatures(), shapefileLayer.getSource().getFeatures(), geojsonLayer.getSource().getFeatures()).forEach(f => {
-    if (f.get(key) === undefined) f.set(key, '');
+  
+  customAttributes.push(name);
+  attributeTypes[name] = type;
+  
+  if (type === 'select') {
+    const opts = document.getElementById('selectOptions').value.split(',').map(o => o.trim()).filter(o => o);
+    attributeTypes[name + '_options'] = opts;
+  }
+  
+  [].concat(vectorSource.getFeatures(), shapefileLayer.getSource().getFeatures(), geojsonLayer.getSource().getFeatures(), kmlLayer.getSource().getFeatures()).forEach(f => {
+    if (f.get(name) === undefined) {
+      if (type === 'checkbox') f.set(name, false);
+      else f.set(name, '');
+    }
   });
+  
   saveToLocal();
   buildAttributeTable();
-  showTempPopup(`Attribute "${key}" added`);
-});
+  addAttrModal.hide();
+  showTempPopup(`Attribute "${name}" added (${type})`);
+};
 
 /* ========================= */
 /*   DRAGGABLE/RESIZABLE     */
@@ -909,8 +1384,8 @@ document.getElementById("addAttrBtn").addEventListener('click', () => {
     const top = box.getBoundingClientRect().top;
     let newW = e.clientX - left;
     let newH = e.clientY - top;
-    newW = Math.max(350, Math.min(window.innerWidth - left - 10, newW));
-    newH = Math.max(200, Math.min(window.innerHeight - top - 10, newH));
+    newW = Math.max(400, Math.min(window.innerWidth - left - 10, newW));
+    newH = Math.max(250, Math.min(window.innerHeight - top - 10, newH));
     box.style.width = newW + "px";
     box.style.height = newH + "px";
   });
