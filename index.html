@@ -3,11 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<<<<<<< HEAD
 <title>Map Viewer </title>
-=======
-<title>Map Viewer</title>
->>>>>>> a0c3987 (Updated index.html)
 
 <!-- OpenLayers -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol@10.7.0/ol.css">
@@ -266,6 +262,20 @@ html, body {
     width: 18px; 
     height: 18px; 
 }
+/* NEW: Checkbox styles for row selection */
+.select-checkbox {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    accent-color: #0d6efd;
+}
+
+.select-all-checkbox {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    accent-color: #00e5ff;
+}
 .table-wrapper select.form-select-sm { 
     font-size: 12px; 
     padding: 2px 6px; 
@@ -453,6 +463,63 @@ html, body {
   font-weight: 500; 
   margin-top: 10px; 
 }
+/* Light placeholder color for modal inputs */
+#addAttrModal .form-control::placeholder {
+  color: #d0d0d0 !important;
+  opacity: 1;
+}
+#addAttrModal .form-control::-webkit-input-placeholder {
+  color: #d0d0d0 !important;
+}
+#addAttrModal .form-control::-moz-placeholder {
+  color: #d0d0d0 !important;
+  opacity: 1;
+}
+#addAttrModal .form-control:-ms-input-placeholder {
+  color: #d0d0d0 !important;
+}
+
+/* Fix for dropdown visibility */
+#addAttrModal .modal-dialog {
+  overflow: visible;
+  margin-top: 5vh;
+}
+#attrType {
+  margin-bottom: 20px;
+}
+#selectOptionsDiv {
+  margin-top: 15px;
+  margin-bottom: 20px;
+}
+/* FORCE DROPDOWN TO BE VISIBLE */
+.modal-dialog {
+  overflow: visible !important;
+}
+
+.modal-content {
+  overflow: visible !important;
+}
+
+.modal-body {
+  overflow: visible !important;
+  min-height: 450px !important;
+  padding-bottom: 50px !important;
+}
+
+/* Make the select dropdown expand properly */
+#attrType {
+  overflow: visible !important;
+  margin-bottom: 30px !important;
+}
+
+/* Ensure dropdown menu appears above everything */
+.modal {
+  overflow: visible !important;
+}
+
+.modal.show .modal-dialog {
+  overflow: visible !important;
+}
 
 @media(max-width: 768px) {
   .search-bar input { 
@@ -477,6 +544,98 @@ html, body {
     font-size: 16px !important; 
   }
 }
+
+/* Left resizer */
+.resizer-left {
+  width: 14px;
+  height: 14px;
+  background: transparent;
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  cursor: sw-resize;
+  border-left: 3px solid rgba(255,255,255,0.4);
+  border-bottom: 3px solid rgba(255,255,255,0.4);
+  z-index: 10;
+}
+
+/* Custom Select Dropdown */
+.custom-select-wrapper {
+  position: relative;
+  width: 100%;
+  margin-bottom: 20px;
+}
+
+.custom-select-display {
+  background: rgba(255,255,255,0.1);
+  color: #fff;
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 4px;
+  padding: 8px 12px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all 0.2s;
+}
+
+.custom-select-display:hover {
+  background: rgba(255,255,255,0.15);
+  border-color: #00e5ff;
+}
+
+.custom-select-display i {
+  font-size: 12px;
+  transition: transform 0.2s;
+}
+
+.custom-select-wrapper.open .custom-select-display i {
+  transform: rotate(180deg);
+}
+
+.custom-select-options {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: #2a2a2a;
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 4px;
+  margin-top: 4px;
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+  z-index: 9999;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+}
+
+.custom-select-wrapper.open .custom-select-options {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.custom-option {
+  padding: 10px 12px;
+  cursor: pointer;
+  color: #fff;
+  transition: all 0.2s;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.custom-option:last-child {
+  border-bottom: none;
+}
+
+.custom-option:hover {
+  background: rgba(0,229,255,0.2);
+  color: #00e5ff;
+}
+
+.custom-option.selected {
+  background: rgba(0,229,255,0.3);
+  color: #00e5ff;
+}
+
 </style>
 </head>
 <body>
@@ -607,21 +766,28 @@ html, body {
         <h5 class="modal-title">Add Custom Attribute</h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
-      <div class="modal-body">
+      <div class="modal-body" style="min-height: 350px;">
         <label>Attribute Name</label>
         <input type="text" id="attrName" class="form-control" placeholder="e.g., status, priority">
         
-        <label>Data Type</label>
-        <select id="attrType" class="form-select">
-          <option value="text">Text</option>
-          <option value="number">Number</option>
-          <option value="checkbox">Checkbox</option>
-          <option value="select">Dropdown</option>
-          <option value="date">Date</option>
-          <option value="image">Image URL</option>
-        </select>
+        <label style="margin-top: 20px;">Data Type</label>
+        <div class="custom-select-wrapper">
+          <div class="custom-select-display" id="attrTypeDisplay">
+            <span>Text</span>
+            <i class="fas fa-chevron-down"></i>
+          </div>
+          <div class="custom-select-options" id="attrTypeOptions">
+            <div class="custom-option" data-value="text">Text</div>
+            <div class="custom-option" data-value="number">Number</div>
+            <div class="custom-option" data-value="checkbox">Checkbox</div>
+            <div class="custom-option" data-value="select">Dropdown</div>
+            <div class="custom-option" data-value="date">Date</div>
+            <div class="custom-option" data-value="image">Image URL</div>
+          </div>
+        </div>
+        <input type="hidden" id="attrType" value="text">
         
-        <div id="selectOptionsDiv" style="display:none; margin-top:10px;">
+        <div id="selectOptionsDiv" style="display:none; margin-top:20px;">
           <label>Dropdown Options (comma-separated)</label>
           <input type="text" id="selectOptions" class="form-control" placeholder="e.g., Low, Medium, High">
         </div>
@@ -992,13 +1158,22 @@ function buildAttributeTable() {
   const keys = Array.from(keySet);
   if (!keys.includes('name')) keys.unshift('name');
 
-  attrHead.innerHTML = '<tr>' + keys.map(k => `<th>${escapeHtml(k)}</th>`).join('') + '<th>Actions</th></tr>';
-
+  
+  attrHead.innerHTML = '<tr><th><input type="checkbox" class="select-all-checkbox" id="selectAllCheckbox" title="Select All"></th>' + keys.map(k => `<th>${escapeHtml(k)}</th>`).join('') + '<th>Actions</th></tr>';
   feats.forEach((f) => {
     if (!f.getId()) f.setId(safeId());
     const fid = f.getId();
     const tr = document.createElement('tr');
     tr.setAttribute('data-fid', fid);
+     // ADD THIS NEW CODE HERE ↓
+    const checkboxTd = document.createElement('td');
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.className = 'select-checkbox';
+    checkbox.dataset.fid = fid;
+    checkbox.onclick = (e) => e.stopPropagation();
+    checkboxTd.appendChild(checkbox);
+    tr.appendChild(checkboxTd);
     tr.onclick = () => {
       const sel = selectInteraction.getFeatures();
       sel.clear();
@@ -1083,6 +1258,17 @@ function buildAttributeTable() {
     buildAttributeTable();
     saveToLocal();
   });
+  setupCheckboxListeners();
+}
+// ADD THIS NEW FUNCTION RIGHT AFTER buildAttributeTable() ↓
+function setupCheckboxListeners() {
+  const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+  if (selectAllCheckbox) {
+    selectAllCheckbox.addEventListener('change', function() {
+      const checkboxes = document.querySelectorAll('.select-checkbox');
+      checkboxes.forEach(cb => cb.checked = this.checked);
+    });
+  }
 }
 
 function highlightRowForFeature(f) {
@@ -1126,12 +1312,33 @@ document.getElementById("saveChangesBtn").onclick = () => {
 };
 
 document.getElementById("deleteSelectedBtn").onclick = () => {
-  if (!selectedFeature || !confirm('Delete selected feature?')) return;
-  const src = findFeatureSource(selectedFeature);
-  if (src) src.removeFeature(selectedFeature);
+  const checkedBoxes = document.querySelectorAll('.select-checkbox:checked');
+  
+  if (checkedBoxes.length === 0) {
+    alert('Please select at least one feature to delete');
+    return;
+  }
+  
+  if (!confirm(`Delete ${checkedBoxes.length} selected feature(s)?`)) return;
+  
+  let deletedCount = 0;
+  checkedBoxes.forEach(checkbox => {
+    const fid = checkbox.dataset.fid;
+    const f = findByIdAcrossSources(fid);
+    if (f) {
+      const src = findFeatureSource(f);
+      if (src) {
+        src.removeFeature(f);
+        deletedCount++;
+      }
+    }
+  });
+  
   selectedFeature = null;
+  selectInteraction.getFeatures().clear();
   buildAttributeTable();
   saveToLocal();
+  showTempPopup(`Deleted ${deletedCount} feature(s)`);
 };
 
 document.getElementById("centerSelectedBtn").onclick = () => {
@@ -1286,53 +1493,6 @@ function loadFromLocal() {
 }
 
 loadFromLocal();
-
-/* ========================= */
-/*   ADD CUSTOM ATTRIBUTE MODAL */
-/* ========================= */
-const addAttrModal = new bootstrap.Modal(document.getElementById('addAttrModal'));
-
-document.getElementById("addAttrBtn").onclick = () => {
-  document.getElementById('attrName').value = '';
-  document.getElementById('attrType').value = 'text';
-  document.getElementById('selectOptionsDiv').style.display = 'none';
-  addAttrModal.show();
-};
-
-document.getElementById('attrType').onchange = function() {
-  document.getElementById('selectOptionsDiv').style.display = this.value === 'select' ? 'block' : 'none';
-};
-
-document.getElementById("confirmAddAttr").onclick = () => {
-  const name = document.getElementById('attrName').value.trim();
-  const type = document.getElementById('attrType').value;
-  
-  if (!name) { alert('Please enter attribute name'); return; }
-  
-  const exists = customAttributes.find(k => k.toLowerCase() === name.toLowerCase());
-  if (exists) { alert("Attribute already exists."); return; }
-  
-  customAttributes.push(name);
-  attributeTypes[name] = type;
-  
-  if (type === 'select') {
-    const opts = document.getElementById('selectOptions').value.split(',').map(o => o.trim()).filter(o => o);
-    attributeTypes[name + '_options'] = opts;
-  }
-  
-  [].concat(vectorSource.getFeatures(), shapefileLayer.getSource().getFeatures(), geojsonLayer.getSource().getFeatures(), kmlLayer.getSource().getFeatures()).forEach(f => {
-    if (f.get(name) === undefined) {
-      if (type === 'checkbox') f.set(name, false);
-      else f.set(name, '');
-    }
-  });
-  
-  saveToLocal();
-  buildAttributeTable();
-  addAttrModal.hide();
-  showTempPopup(`Attribute "${name}" added (${type})`);
-};
-
 /* ========================= */
 /*   DRAGGABLE/RESIZABLE     */
 /* ========================= */
@@ -1367,33 +1527,116 @@ document.getElementById("confirmAddAttr").onclick = () => {
   
   document.addEventListener("mouseup", () => { isDrag = false; document.body.style.userSelect = ''; });
 
-  const resizer = document.createElement("div");
-  resizer.style.width = "14px"; resizer.style.height = "14px"; resizer.style.background = "transparent";
-  resizer.style.position = "absolute"; resizer.style.right = "0"; resizer.style.bottom = "0";
-  resizer.style.cursor = "se-resize"; resizer.style.borderRight = "3px solid rgba(255,255,255,0.4)";
-  resizer.style.borderBottom = "3px solid rgba(255,255,255,0.4)"; resizer.style.zIndex = "10";
-  box.appendChild(resizer);
+  // LEFT BOTTOM RESIZER ONLY
+  const resizerLeft = document.createElement("div");
+  resizerLeft.className = "resizer-left";
+  box.appendChild(resizerLeft);
   
-  let isResize = false;
-  resizer.addEventListener("mousedown", (e) => { 
-    e.preventDefault(); e.stopPropagation(); isResize = true; 
-    box.style.position = "fixed"; document.body.style.userSelect = 'none';
+  let isResizeLeft = false;
+  let startX = 0, startWidth = 0, startLeft = 0;
+  
+  resizerLeft.addEventListener("mousedown", (e) => { 
+    e.preventDefault(); e.stopPropagation(); 
+    isResizeLeft = true;
+    startX = e.clientX;
+    startWidth = box.offsetWidth;
+    startLeft = box.getBoundingClientRect().left;
+    box.style.position = "fixed"; 
+    document.body.style.userSelect = 'none';
   });
   
   document.addEventListener("mousemove", (e) => {
-    if (!isResize) return;
-    const left = box.getBoundingClientRect().left;
+    if (!isResizeLeft) return;
+    
+    const deltaX = startX - e.clientX;
+    let newW = startWidth + deltaX;
+    let newLeft = startLeft - deltaX;
+    
+    newW = Math.max(400, Math.min(startLeft + startWidth - 10, newW));
+    newLeft = Math.max(10, newLeft);
+    
     const top = box.getBoundingClientRect().top;
-    let newW = e.clientX - left;
     let newH = e.clientY - top;
-    newW = Math.max(400, Math.min(window.innerWidth - left - 10, newW));
     newH = Math.max(250, Math.min(window.innerHeight - top - 10, newH));
+    
     box.style.width = newW + "px";
     box.style.height = newH + "px";
+    box.style.left = newLeft + "px";
+    box.style.right = 'auto';
   });
   
-  document.addEventListener("mouseup", () => { isResize = false; document.body.style.userSelect = ''; });
+  document.addEventListener("mouseup", () => { 
+    isResizeLeft = false; 
+    document.body.style.userSelect = ''; 
+  });
 })();
+/* ========================= */
+/*   CUSTOM SELECT DROPDOWN  */
+/* ========================= */
+(function() {
+  const display = document.getElementById('attrTypeDisplay');
+  const optionsContainer = document.getElementById('attrTypeOptions');
+  const wrapper = display?.closest('.custom-select-wrapper');
+  const hiddenInput = document.getElementById('attrType');
+  const selectOptionsDiv = document.getElementById('selectOptionsDiv');
+  
+  if (!display || !optionsContainer || !wrapper) return;
+  
+  // Toggle dropdown
+  display.onclick = function(e) {
+    e.stopPropagation();
+    wrapper.classList.toggle('open');
+  };
+  
+  // Select option
+  optionsContainer.querySelectorAll('.custom-option').forEach(option => {
+    option.onclick = function(e) {
+      e.stopPropagation();
+      const value = this.dataset.value;
+      const text = this.textContent;
+      
+      // Update display
+      display.querySelector('span').textContent = text;
+      hiddenInput.value = value;
+      
+      // Update selected state
+      optionsContainer.querySelectorAll('.custom-option').forEach(opt => 
+        opt.classList.remove('selected')
+      );
+      this.classList.add('selected');
+      
+      // Close dropdown
+      wrapper.classList.remove('open');
+      
+      // Show/hide dropdown options input
+      selectOptionsDiv.style.display = value === 'select' ? 'block' : 'none';
+    };
+  });
+  
+  // Close when clicking outside
+  document.addEventListener('click', function(e) {
+    if (!wrapper.contains(e.target)) {
+      wrapper.classList.remove('open');
+    }
+  });
+})();
+
+buildAttributeTable();
+// Ensure modal handlers are set after page loads
+setTimeout(() => {
+  const addAttrBtn = document.getElementById("addAttrBtn");
+  if (addAttrBtn) {
+    addAttrBtn.onclick = () => {
+      document.getElementById('attrName').value = '';
+      document.getElementById('attrType').value = 'text';
+      document.getElementById('selectOptionsDiv').style.display = 'none';
+      
+      let modal = new bootstrap.Modal(document.getElementById('addAttrModal'));
+      modal.show();
+    };
+  }
+}, 500);
+</script>
 
 buildAttributeTable();
 </script>
