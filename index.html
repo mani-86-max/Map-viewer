@@ -256,6 +256,51 @@ html, body {
      font-size: 13px; 
     }
 
+
+    /* Attribute Table Buttons */
+.table-wrapper .btn-focus {
+    background-color: #0d6efd; /* Blue for Center */
+    color: #fff;
+    border: 1px solid #0d6efd;
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.table-wrapper .btn-focus:hover {
+    background-color: #0056b3;
+    border-color: #0056b3;
+}
+
+.table-wrapper .btn-del-feature {
+    background-color: #dc3545; /* Red for Delete */
+    color: #fff;
+    border: 1px solid #dc3545;
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.table-wrapper .btn-delete {
+    background-color: #dc3545 !important; /* Red */
+    color: #fff !important;
+    border: 1px solid #dc3545 !important;
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.table-wrapper .btn-delete:hover {
+    background-color: #a71d2a !important;
+    border-color: #a71d2a !important;
+}
+
+
 /* Special column types */
 .table-wrapper input[type="checkbox"] { 
     cursor: pointer; 
@@ -636,6 +681,12 @@ html, body {
   color: #00e5ff;
 }
 
+
+
+/* loader */
+
+
+
 </style>
 </head>
 <body>
@@ -650,6 +701,16 @@ html, body {
 
 <!-- MAP -->
 <div id="map" class="map"></div>
+
+<div id="loader" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; 
+  background:rgba(0,0,0,0.5); z-index:99999; justify-content:center; align-items:center; flex-direction:column;">
+  <div style="background:#fff; padding:20px; border-radius:8px; text-align:center; width:300px;">
+    <div id="loaderText">Loading...</div>
+    <div style="width:100%; background:#eee; height:10px; margin-top:10px; border-radius:5px;">
+      <div id="loaderProgress" style="width:0%; height:100%; background:#0d6efd; border-radius:5px;"></div>
+    </div>
+  </div>
+</div>
 
 <!-- DRAWER -->
 <div id="drawer" class="drawer">
@@ -669,7 +730,10 @@ html, body {
       <button id="uploadKmlBtn" class="icon-btn" title="Upload KML">
         <i class="fas fa-map-pin"></i> 
       </button>
-      <input type="file" id="fileInput" hidden>
+      
+     <input type="file" id="fileInput" style="display:none" multiple>
+
+
     </div>
     <hr>
     <div class="basemap-group">
@@ -734,7 +798,7 @@ html, body {
     <button id="drawLine" class="editor-btn" title="Draw Line"><i class="fas fa-grip-lines"></i></button>
     <button id="drawPolygon" class="editor-btn" title="Draw Polygon"><i class="fas fa-vector-square"></i></button>
     <button id="modifyFeature" class="editor-btn" title="Modify"><i class="fas fa-edit"></i></button>
-    <button id="deleteFeature" class="editor-btn" title="Delete"><i class="fas fa-trash"></i></button>
+    <!--<button id="deleteFeature" class="editor-btn" title="Delete"><i class="fas fa-trash"></i></button>-->
     <button id="saveFeature" class="editor-btn" title="Export"><i class="fas fa-save"></i></button>
   </div>
 </div>
@@ -766,10 +830,12 @@ html, body {
         <h5 class="modal-title">Add Custom Attribute</h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
+
       <div class="modal-body" style="min-height: 350px;">
+
         <label>Attribute Name</label>
         <input type="text" id="attrName" class="form-control" placeholder="e.g., status, priority">
-        
+
         <label style="margin-top: 20px;">Data Type</label>
         <div class="custom-select-wrapper">
           <div class="custom-select-display" id="attrTypeDisplay">
@@ -782,16 +848,32 @@ html, body {
             <div class="custom-option" data-value="checkbox">Checkbox</div>
             <div class="custom-option" data-value="select">Dropdown</div>
             <div class="custom-option" data-value="date">Date</div>
-            <div class="custom-option" data-value="image">Image URL</div>
+            <div class="custom-option" data-value="image">Image</div>
           </div>
         </div>
+
         <input type="hidden" id="attrType" value="text">
-        
+
+        <!-- DROPDOWN OPTIONS -->
         <div id="selectOptionsDiv" style="display:none; margin-top:20px;">
           <label>Dropdown Options (comma-separated)</label>
           <input type="text" id="selectOptions" class="form-control" placeholder="e.g., Low, Medium, High">
         </div>
+
+        <!-- DATE FORMAT FIELD -->
+        <div id="dateFormatDiv" style="display:none; margin-top:20px;">
+          <label>Date Format (optional)</label>
+          <input type="text" id="dateFormat" class="form-control" placeholder="e.g., YYYY-MM-DD">
+        </div>
+
+        <!-- IMAGE URL FIELD -->
+        <div id="imageUrlDiv" style="display:none; margin-top:20px;">
+          <label>Image URL</label>
+          <input type="text" id="imageUrl" class="form-control" placeholder="Paste image URL">
+        </div>
+
       </div>
+
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
         <button type="button" class="btn btn-primary" id="confirmAddAttr">Add Attribute</button>
@@ -799,6 +881,7 @@ html, body {
     </div>
   </div>
 </div>
+
 
 <!-- Libraries -->
 <script src="https://cdn.jsdelivr.net/npm/ol@10.7.0/dist/ol.js"></script>
@@ -1013,80 +1096,87 @@ document.getElementById("uploadGeoJsonBtn").onclick = () => { fileInput.accept =
 document.getElementById("uploadKmlBtn").onclick = () => { fileInput.accept = '.kml'; fileInput.dataset.type = 'kml'; fileInput.click(); };
 
 fileInput.onchange = async (e) => {
-  const f = e.target.files[0]; if (!f) return;
-  const name = f.name.toLowerCase();
-  const type = fileInput.dataset.type || 'geojson';
-  try {
-    if (name.endsWith('.zip')) {
-      try { shp.bufferSize = 512*1024*1024; } catch(_) {}
-      const geo = await shp(await f.arrayBuffer());
-      handleLoaded(geo, 'shapefile');
-    } else if (name.endsWith('.geojson') || name.endsWith('.json')) {
-      handleLoaded(JSON.parse(await f.text()), 'geojson');
-    } else if (name.endsWith('.kml')) {
-      const kmlText = await f.text();
-      const kmlFormat = new ol.format.KML();
-      const features = kmlFormat.readFeatures(kmlText, { featureProjection: 'EPSG:3857' });
-      handleLoadedFeatures(features, 'kml');
-    } else {
-      alert("Unsupported file. Use ZIP (shapefile), GeoJSON, or KML.");
+  const files = e.target.files;
+  if (!files || !files.length) return;
+
+  const loader = document.getElementById('loader');
+  const loaderText = document.getElementById('loaderText');
+  const loaderProgress = document.getElementById('loaderProgress');
+  loader.style.display = 'flex';
+
+  for (let i = 0; i < files.length; i++) {
+    const f = files[i];
+    const name = f.name.toLowerCase();
+
+    loaderText.innerText = `Loading ${f.name} (${i+1}/${files.length})... 0%`;
+    loaderProgress.style.width = '0%';
+
+    try {
+      let features;
+
+      if (name.endsWith('.zip')) {
+        const arrayBuffer = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onprogress = (ev) => {
+            if (ev.lengthComputable) {
+              const percent = Math.round((ev.loaded / ev.total) * 100);
+              loaderText.innerText = `Loading ${f.name} (${i+1}/${files.length})... ${percent}%`;
+              loaderProgress.style.width = percent + '%';
+            }
+          };
+          reader.onload = () => resolve(reader.result);
+          reader.onerror = () => reject(reader.error);
+          reader.readAsArrayBuffer(f);
+        });
+        const geo = await shp(arrayBuffer);
+        features = [].concat(...geo.map(g => new ol.format.GeoJSON().readFeatures(g, { featureProjection: 'EPSG:3857' })));
+      } else if (name.endsWith('.geojson') || name.endsWith('.json')) {
+        const text = await f.text();
+        features = new ol.format.GeoJSON().readFeatures(JSON.parse(text), { featureProjection: 'EPSG:3857' });
+      } else if (name.endsWith('.kml')) {
+        const text = await f.text();
+        features = new ol.format.KML().readFeatures(text, { featureProjection: 'EPSG:3857' });
+      } else {
+        alert("Unsupported file: " + f.name);
+        continue;
+      }
+
+      // Assign ID and color
+      features.forEach((feat, idx) => {
+        if (!feat.getId()) feat.setId(`feat-${Date.now()}-${Math.random().toString(36).slice(2,8)}-${idx}`);
+        if (!feat.get('color')) feat.set('color', '#' + Math.floor(Math.random()*0xFFFFFF).toString(16).padStart(6,'0'));
+      });
+
+      // **Add features to a single layer** (or create a new layer)
+      if (!window.multiFileLayer) {
+        window.multiFileLayer = new ol.layer.Vector({
+          source: new ol.source.Vector({ features }),
+          zIndex: 50 + map.getLayers().getLength(),
+          style: featureStyle
+        });
+        map.addLayer(window.multiFileLayer);
+      } else {
+        window.multiFileLayer.getSource().addFeatures(features);
+      }
+
+      // Fit map to all features loaded so far
+      const extent = window.multiFileLayer.getSource().getExtent();
+      if (extent && extent.every(v => isFinite(v))) {
+        map.getView().fit(extent, { padding: [50,50,50,50], duration: 700, maxZoom: 16 });
+      }
+
+      showTempPopup(`Loaded ${features.length} features from ${f.name}`);
+
+    } catch (err) {
+      console.error(err);
+      alert("Failed to load " + f.name + ": " + (err.message || err));
     }
-  } catch (err) { console.error(err); alert("Failed to load: " + (err.message || err)); }
+  }
+
+  loader.style.display = 'none';
   fileInput.value = "";
 };
 
-function handleLoadedFeatures(features, type='geojson') {
-  if (!features.length) return alert("No features found");
-
-  const sourceFeatureCount = vectorSource.getFeatures().length + shapefileLayer.getSource().getFeatures().length + geojsonLayer.getSource().getFeatures().length + kmlLayer.getSource().getFeatures().length;
-
-  features.forEach((f,i) => {
-    const p = f.getProperties();
-    if (!p.name && !p.NAME) f.set('name', `Feature ${sourceFeatureCount + i + 1}`);
-    if (!f.get('color')) f.set('color', randomColor());
-    if (!f.getId()) f.setId(safeId());
-    customAttributes.forEach(k => { if (f.get(k) === undefined) f.set(k, ''); });
-  });
-
-  if (type === 'shapefile') {
-    shapefileLayer.getSource().addFeatures(features);
-  } else if (type === 'kml') {
-    kmlLayer.getSource().addFeatures(features);
-  } else {
-    geojsonLayer.getSource().addFeatures(features);
-  }
-
-  try {
-    let source;
-    if (type === 'shapefile') source = shapefileLayer.getSource();
-    else if (type === 'kml') source = kmlLayer.getSource();
-    else source = geojsonLayer.getSource();
-    
-    const extent = source.getExtent();
-    if (extent && extent.every(v => isFinite(v))) {
-      map.getView().fit(extent, { padding: [50,50,50,50], duration: 700, maxZoom: 16 });
-    }
-  } catch (e) {}
-
-  buildAttributeTable();
-  saveToLocal();
-  showTempPopup(`Loaded ${features.length} features`);
-}
-
-function handleLoaded(geo, type='geojson') {
-  const fmt = new ol.format.GeoJSON();
-  let features = [];
-  if (Array.isArray(geo)) {
-    geo.forEach(g => features = features.concat(fmt.readFeatures(g, { featureProjection: "EPSG:3857" })));
-  } else {
-    features = fmt.readFeatures(geo, { featureProjection: "EPSG:3857" });
-  }
-  handleLoadedFeatures(features, type);
-}
-
-/* ========================= */
-/*   SELECTION               */
-/* ========================= */
 let selectedFeature = null;
 
 const selectInteraction = new ol.interaction.Select({
@@ -1135,131 +1225,153 @@ function findByIdAcrossSources(id) {
   return f;
 }
 
-/* ========================= */
-/*   ATTRIBUTE TABLE         */
-/* ========================= */
-function buildAttributeTable() {
-  attrHead.innerHTML = '';
-  attrBody.innerHTML = '';
+/*   ATTRIBUTE TABLE */
 
-  const feats = [].concat(vectorSource.getFeatures(), shapefileLayer.getSource().getFeatures(), geojsonLayer.getSource().getFeatures(), kmlLayer.getSource().getFeatures());
+function buildAttributeTable() {
+
+  attrHead.innerHTML = "";
+  attrBody.innerHTML = "";
+
+  const feats = [].concat(
+    vectorSource.getFeatures(),
+    shapefileLayer.getSource().getFeatures(),
+    geojsonLayer.getSource().getFeatures(),
+    kmlLayer.getSource().getFeatures()
+  );
 
   if (!feats.length) {
-    attrHead.innerHTML = '<tr><th>No features</th></tr>';
-    attributeBox.style.display = 'none';
-    showTempPopup('No features exist');
+    attrHead.innerHTML = "<tr><th>No features</th></tr>";
+    attributeBox.style.display = "none";
     return;
   }
 
+  attributeBox.style.display = "flex";
+
   const keySet = new Set();
-  feats.forEach(f => Object.keys(f.getProperties()).forEach(k => { if(k !== 'geometry') keySet.add(k); }));
+  feats.forEach(f =>
+    Object.keys(f.getProperties()).forEach(k => {
+      if (k !== "geometry") keySet.add(k);
+    })
+  );
   customAttributes.forEach(k => keySet.add(k));
 
   const keys = Array.from(keySet);
-  if (!keys.includes('name')) keys.unshift('name');
+  if (!keys.includes("name")) keys.unshift("name");
 
-  
-  attrHead.innerHTML = '<tr><th><input type="checkbox" class="select-all-checkbox" id="selectAllCheckbox" title="Select All"></th>' + keys.map(k => `<th>${escapeHtml(k)}</th>`).join('') + '<th>Actions</th></tr>';
-  feats.forEach((f) => {
+  attrHead.innerHTML =
+    `<tr>
+       <th><input type="checkbox" id="selectAllCheckbox"></th>
+       ${keys.map(k => `<th>${k}</th>`).join("")}
+       <th>Actions</th>
+     </tr>`;
+
+  feats.forEach(f => {
     if (!f.getId()) f.setId(safeId());
     const fid = f.getId();
-    const tr = document.createElement('tr');
-    tr.setAttribute('data-fid', fid);
-     // ADD THIS NEW CODE HERE ↓
-    const checkboxTd = document.createElement('td');
-    const checkbox = document.createElement('input');
-    checkbox.type = 'checkbox';
-    checkbox.className = 'select-checkbox';
-    checkbox.dataset.fid = fid;
-    checkbox.onclick = (e) => e.stopPropagation();
-    checkboxTd.appendChild(checkbox);
-    tr.appendChild(checkboxTd);
-    tr.onclick = () => {
-      const sel = selectInteraction.getFeatures();
-      sel.clear();
-      sel.push(f);
-      selectedFeature = f;
-      highlightRowForFeature(f);
-      if (attributeBox.style.display !== 'flex') attributeBox.style.display = 'flex';
-    };
-    
-    keys.forEach(k => {
-      if (f.get(k) === undefined) f.set(k, '');
-      const td = document.createElement('td');
-      td.dataset.key = k;
-      
-      const attrType = attributeTypes[k] || 'text';
-      
-      if (attrType === 'checkbox') {
-        const checkbox = document.createElement('input');
-        checkbox.type = 'checkbox';
-        checkbox.checked = f.get(k) === true || f.get(k) === 'true';
-        checkbox.onchange = () => f.set(k, checkbox.checked);
-        td.appendChild(checkbox);
-      } else if (attrType === 'select') {
-        const select = document.createElement('select');
-        select.className = 'form-select form-select-sm';
-        const options = attributeTypes[k + '_options'] || [];
-        select.innerHTML = '<option value="">--Select--</option>' + options.map(opt => 
-          `<option value="${escapeHtml(opt)}" ${f.get(k) === opt ? 'selected' : ''}>${escapeHtml(opt)}</option>`
-        ).join('');
-        select.onchange = () => f.set(k, select.value);
-        td.appendChild(select);
-      } else if (attrType === 'image') {
-        const val = f.get(k) || '';
-        if (val) {
-          const img = document.createElement('img');
-          img.src = val;
-          img.className = 'image-cell';
-          img.onclick = () => {
-            const newUrl = prompt('Enter image URL:', val);
-            if (newUrl !== null) {
-              f.set(k, newUrl);
-              buildAttributeTable();
-            }
-          };
-          td.appendChild(img);
-        } else {
-          td.contentEditable = true;
-          td.innerText = '';
-        }
-      } else {
-        td.contentEditable = true;
-        td.innerText = f.get(k) || '';
+    const tr = document.createElement("tr");
+    tr.dataset.fid = fid;
+
+    const tdCheck = document.createElement("td");
+    const cb = document.createElement("input");
+    cb.type = "checkbox";
+    cb.classList.add("select-checkbox");
+    cb.dataset.fid = fid;
+    tdCheck.appendChild(cb);
+    tr.appendChild(tdCheck);
+
+    keys.forEach(col => {
+      const td = document.createElement("td");
+      let val = f.get(col);
+      if (typeof val === "object") val = JSON.stringify(val);
+
+      let type = "text";
+      if (col.toLowerCase().includes("date")) type = "date";
+      else if (!isNaN(val) && val !== "" && val !== null) type = "number";
+      else if (val === true || val === false) type = "checkbox";
+
+      let input = document.createElement("input");
+      input.classList.add("attr-input");
+
+      if (type === "date") {
+        input.type = "date";
+        input.value = val ? new Date(val).toISOString().split("T")[0] : "";
+        input.onchange = () => f.set(col, input.value);
       }
-      
+
+      else if (type === "number") {
+        input.type = "number";
+        input.value = val ?? "";
+        input.oninput = () => {
+          if (input.value === "" || isNaN(input.value)) input.style.border = "2px solid red";
+          else { input.style.border = ""; f.set(col, Number(input.value)); }
+        };
+      }
+
+      else if (type === "checkbox") {
+        input = document.createElement("input");
+        input.type = "checkbox";
+        input.checked = !!val;
+        input.onchange = () => f.set(col, input.checked);
+      }
+
+      else {
+        input.type = "text";
+        input.value = val ?? "";
+        input.oninput = () => {
+          if (input.value.trim() === "") input.style.border = "2px solid red";
+          else { input.style.border = ""; f.set(col, input.value); }
+        };
+      }
+
+      td.appendChild(input);
       tr.appendChild(td);
     });
-    
-    const actionTd = document.createElement('td');
-    actionTd.innerHTML = `<button class="btn btn-sm btn-outline-primary btn-focus">Center</button> <button class="btn btn-sm btn-outline-danger btn-del-feature">Delete</button>`;
+
+    const actionTd = document.createElement("td");
+    actionTd.innerHTML = `
+      <button class="btn-focus">Center</button>
+      <button class="btn-delete">Delete</button>
+    `;
     tr.appendChild(actionTd);
+
     attrBody.appendChild(tr);
   });
 
-  attrBody.querySelectorAll('.btn-focus').forEach(b => b.onclick = function (ev) {
-    ev.stopPropagation();
-    const fid = this.closest('tr').dataset.fid;
-    const f = findByIdAcrossSources(fid);
-    if (!f) return;
-    const geom = f.getGeometry();
-    const center = geom.getType&&geom.getType()==='Point' ? geom.getCoordinates() : ol.extent.getCenter(geom.getExtent());
-    map.getView().animate({ center, zoom: Math.max(map.getView().getZoom(), 14), duration: 600 });
+  document.querySelectorAll(".btn-focus").forEach(btn => {
+    btn.onclick = function (ev) {
+      ev.stopPropagation();
+      const fid = this.closest("tr").dataset.fid;
+      const f = findByIdAcrossSources(fid);
+      if (!f) return;
+      const geom = f.getGeometry();
+      const center = geom.getType() === "Point"
+        ? geom.getCoordinates()
+        : ol.extent.getCenter(geom.getExtent());
+      map.getView().animate({ center, zoom: 15, duration: 600 });
+    };
   });
 
-  attrBody.querySelectorAll('.btn-del-feature').forEach(b => b.onclick = function (ev) {
-    ev.stopPropagation();
-    const fid = this.closest('tr').dataset.fid;
-    const f = findByIdAcrossSources(fid);
-    if (!f || !confirm('Delete this feature?')) return;
-    const src = findFeatureSource(f);
-    if (src) src.removeFeature(f);
-    selectInteraction.getFeatures().remove(f);
-    buildAttributeTable();
-    saveToLocal();
+  document.querySelectorAll(".btn-delete").forEach(btn => {
+    btn.onclick = function (ev) {
+      ev.stopPropagation();
+      const fid = this.closest("tr").dataset.fid;
+      const f = findByIdAcrossSources(fid);
+      if (!f || !confirm("Delete this feature?")) return;
+      const src = findFeatureSource(f);
+      if (src) src.removeFeature(f);
+      buildAttributeTable();
+      saveToLocal();
+    };
   });
-  setupCheckboxListeners();
+
+  document.getElementById("selectAllCheckbox").onchange = (ev) => {
+    const checked = ev.target.checked;
+    document.querySelectorAll(".select-checkbox").forEach(c => c.checked = checked);
+  };
+
 }
+
+
 // ADD THIS NEW FUNCTION RIGHT AFTER buildAttributeTable() ↓
 function setupCheckboxListeners() {
   const selectAllCheckbox = document.getElementById('selectAllCheckbox');
@@ -1435,12 +1547,11 @@ document.getElementById('drawPoint').onclick = function() { addDraw('Point', thi
 document.getElementById('drawLine').onclick = function() { addDraw('LineString', this); };
 document.getElementById('drawPolygon').onclick = function() { addDraw('Polygon', this); };
 document.getElementById('modifyFeature').onclick = startModify;
-document.getElementById('deleteFeature').onclick = () => document.getElementById('deleteSelectedBtn').click();
+
 document.getElementById('saveFeature').onclick = () => document.getElementById('exportAllBtn').click();
 
-/* ========================= */
 /*   LOCAL STORAGE           */
-/* ========================= */
+
 function saveToLocal() {
   try {
     const fmt = new ol.format.GeoJSON();
@@ -1570,56 +1681,52 @@ loadFromLocal();
     document.body.style.userSelect = ''; 
   });
 })();
-/* ========================= */
-/*   CUSTOM SELECT DROPDOWN  */
-/* ========================= */
+    // attribute model 
 (function() {
   const display = document.getElementById('attrTypeDisplay');
   const optionsContainer = document.getElementById('attrTypeOptions');
   const wrapper = display?.closest('.custom-select-wrapper');
   const hiddenInput = document.getElementById('attrType');
+
   const selectOptionsDiv = document.getElementById('selectOptionsDiv');
-  
+  const dateFormatDiv = document.getElementById('dateFormatDiv');
+  const imageUrlDiv = document.getElementById('imageUrlDiv');
+
   if (!display || !optionsContainer || !wrapper) return;
-  
-  // Toggle dropdown
+
   display.onclick = function(e) {
     e.stopPropagation();
     wrapper.classList.toggle('open');
   };
-  
-  // Select option
+
   optionsContainer.querySelectorAll('.custom-option').forEach(option => {
     option.onclick = function(e) {
       e.stopPropagation();
       const value = this.dataset.value;
       const text = this.textContent;
-      
-      // Update display
+
       display.querySelector('span').textContent = text;
       hiddenInput.value = value;
-      
-      // Update selected state
-      optionsContainer.querySelectorAll('.custom-option').forEach(opt => 
-        opt.classList.remove('selected')
-      );
+
+      optionsContainer.querySelectorAll('.custom-option')
+        .forEach(opt => opt.classList.remove('selected'));
       this.classList.add('selected');
-      
-      // Close dropdown
+
       wrapper.classList.remove('open');
-      
-      // Show/hide dropdown options input
+
       selectOptionsDiv.style.display = value === 'select' ? 'block' : 'none';
+      dateFormatDiv.style.display = value === 'date' ? 'block' : 'none';
+      imageUrlDiv.style.display = value === 'image' ? 'block' : 'none';
     };
   });
-  
-  // Close when clicking outside
+
   document.addEventListener('click', function(e) {
     if (!wrapper.contains(e.target)) {
       wrapper.classList.remove('open');
     }
   });
 })();
+
 
 buildAttributeTable();
 // Ensure modal handlers are set after page loads
