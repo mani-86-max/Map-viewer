@@ -1244,9 +1244,6 @@ function buildAttributeTable() {
     attributeBox.style.display = "none";
     return;
   }
-
-  //attributeBox.style.display = "flex";
-
   const keySet = new Set();
   feats.forEach(f =>
     Object.keys(f.getProperties()).forEach(k => {
