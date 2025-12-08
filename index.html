@@ -798,7 +798,7 @@ html, body {
     <button id="drawLine" class="editor-btn" title="Draw Line"><i class="fas fa-grip-lines"></i></button>
     <button id="drawPolygon" class="editor-btn" title="Draw Polygon"><i class="fas fa-vector-square"></i></button>
     <button id="modifyFeature" class="editor-btn" title="Modify"><i class="fas fa-edit"></i></button>
-    <!--<button id="deleteFeature" class="editor-btn" title="Delete"><i class="fas fa-trash"></i></button>-->
+    <button id="deleteFeature" class="editor-btn" title="Delete"><i class="fas fa-trash"></i></button>
     <button id="saveFeature" class="editor-btn" title="Export"><i class="fas fa-save"></i></button>
   </div>
 </div>
@@ -1326,8 +1326,9 @@ function buildAttributeTable() {
 
     const actionTd = document.createElement("td");
     actionTd.innerHTML = `
-      <button class="btn-focus">Center</button>
-      <button class="btn-delete">Delete</button>
+       <button class="btn-focus" title="Center"><i class="fas fa-crosshairs"></i></button>
+  <button class="btn-delete" title="Delete"><i class="fas fa-trash"></i></button>
+  <button class="btn-export" title="Export"><i class="fas fa-download"></i></button>
     `;
     tr.appendChild(actionTd);
 
