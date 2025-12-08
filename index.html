@@ -1451,6 +1451,25 @@ document.getElementById("deleteSelectedBtn").onclick = () => {
   showTempPopup(`Deleted ${deletedCount} feature(s)`);
 };
 
+  // **Editor Delete button**
+document.getElementById("deleteFeature").onclick = () => {
+  if (!selectedFeature) {
+    alert('Select a feature first to delete.');
+    return;
+  }
+  if (!confirm('Delete the selected feature?')) return;
+
+  const src = findFeatureSource(selectedFeature);
+  if (src) src.removeFeature(selectedFeature);
+
+  selectedFeature = null;
+  selectInteraction.getFeatures().clear();
+  buildAttributeTable();
+  saveToLocal();
+  showTempPopup('Feature deleted');
+};
+ 
+
 document.getElementById("centerSelectedBtn").onclick = () => {
   if (!selectedFeature) return alert('Select a feature first.');
   const geom = selectedFeature.getGeometry();
@@ -1601,7 +1620,7 @@ function loadFromLocal() {
   } catch(e) { console.error('Load error', e); }
 }
 
-//loadFromLocal();
+loadFromLocal();
 /* ========================= */
 /*   DRAGGABLE/RESIZABLE     */
 /* ========================= */
