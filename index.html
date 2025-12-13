@@ -680,13 +680,164 @@ html, body {
   background: rgba(0,229,255,0.3);
   color: #00e5ff;
 }
+  /* LAYERS PANEL STYLES */
+.layers-panel {
+  position: fixed;
+  top: 120px;
+  right: 15px;
+  width: 320px;
+  max-height: 60vh;
+  background: rgba(26, 26, 26, 0.98);
+  color: #fff;
+  border-radius: 10px;
+  padding: 12px;
+  z-index: 400;
+  display: none;
+  flex-direction: column;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  overflow: hidden;
+}
 
+.layers-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  margin-bottom: 10px;
+}
 
+.layers-header h6 {
+  margin: 0;
+  font-size: 16px;
+  color: #00e5ff;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
 
-/* loader */
+.layers-list {
+  overflow-y: auto;
+  flex: 1;
+  padding-right: 5px;
+}
 
+.layer-item {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 8px;
+  cursor: move;
+  transition: all 0.2s;
+}
 
+.layer-item:hover {
+  background: rgba(255,255,255,0.08);
+  border-color: rgba(0,229,255,0.3);
+}
 
+.layer-item.dragging {
+  opacity: 0.5;
+}
+
+.layer-header-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.layer-visibility-check {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  accent-color: #00e5ff;
+}
+
+.layer-drag-handle {
+  cursor: move;
+  color: rgba(255,255,255,0.4);
+  font-size: 14px;
+}
+
+.layer-name {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 500;
+  color: #fff;
+}
+
+.layer-count-badge {
+  background: #0d6efd;
+  color: #fff;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.layer-delete-btn {
+  background: none;
+  border: none;
+  color: #dc3545;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 4px;
+  transition: all 0.2s;
+}
+
+.layer-delete-btn:hover {
+  color: #ff5555;
+}
+
+.layer-opacity-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.layer-opacity-label {
+  font-size: 12px;
+  color: rgba(255,255,255,0.7);
+  min-width: 60px;
+}
+
+.layer-opacity-slider {
+  flex: 1;
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(255,255,255,0.2);
+  outline: none;
+  -webkit-appearance: none;
+}
+
+.layer-opacity-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #00e5ff;
+  cursor: pointer;
+}
+
+.layer-opacity-slider::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #00e5ff;
+  cursor: pointer;
+  border: none;
+}
+
+.layer-opacity-value {
+  font-size: 12px;
+  color: #00e5ff;
+  min-width: 35px;
+  text-align: right;
+} 
+  
 </style>
 </head>
 <body>
@@ -751,8 +902,12 @@ html, body {
       </button>
     </div>
     <hr>
-    <button id="toggleAttributes" class="icon-btn" title="Attributes">
+     <button id="toggleAttributes" class="icon-btn" title="Attributes">
       <i class="fas fa-table"></i>
+    </button>
+    <hr>
+    <button id="toggleLayers" class="icon-btn" title="Layers">
+      <i class="fas fa-layer-group"></i>
     </button>
     <hr>
     <button id="toggleEditor" class="icon-btn" title="Editor Tools">
@@ -784,6 +939,18 @@ html, body {
     <button id="deleteSelectedBtn" class="btn btn-sm btn-danger">Delete</button>
     <button id="centerSelectedBtn" class="btn btn-sm btn-info">Center</button>
     <button id="exportAllBtn" class="btn btn-sm btn-success">Export</button>
+  </div>
+</div>
+
+  <!--LAYERS PANEL-->
+<div id="layersPanel" class="layers-panel">
+  <div class="layers-header">
+    <h6><i class="fas fa-layer-group"></i> Layers</h6>
+    <button id="closeLayersPanel" class="attr-small-btn" title="Close">
+      <i class="fas fa-times"></i>
+    </button>
+  </div>
+  <div id="layersList" class="layers-list">
   </div>
 </div>
 
@@ -896,9 +1063,9 @@ html, body {
   
 document.getElementById('year').innerText = new Date().getFullYear();
 
-/* ========================= */
-/*   MAP INITIALIZATION      */
-/* ========================= */
+
+/*  MAP INITIALIZATION  */
+
 
 // Base Layers with updated URLs
 const osmLayer = new ol.layer.Tile({ source: new ol.source.OSM(), visible: true });
@@ -951,9 +1118,9 @@ try {
   attributeTypes = JSON.parse(localStorage.getItem('attributeTypes')||'{}')|| {};
 } catch(e) { customAttributes = []; attributeTypes = {}; }
 
-/* ========================= */
-/*   POPUP                   */
-/* ========================= */
+
+/*   POPUP   */
+
 const popup = document.getElementById("popup");
 const overlay = new ol.Overlay({ element: popup, positioning: "bottom-center", stopEvent: false, offset: [0,-12] });
 map.addOverlay(overlay);
@@ -982,9 +1149,8 @@ function showTempPopup(msg, dur=2500) {
   setTimeout(()=>{ popup.style.display='none'; popup.style.position='absolute'; popup.style.transform='none'; }, dur);
 }
 
-/* ========================= */
-/*   ELEMENTS & CONTROLS     */
-/* ========================= */
+/* ELEMENTS & CONTROLS */
+
 const drawerToggle = document.getElementById("drawerToggle");
 const drawerContent = document.querySelector(".drawer-content");
 const fileInput = document.getElementById("fileInput");
@@ -1008,6 +1174,22 @@ document.getElementById("toggleAttributes").onclick = () => {
 document.getElementById("toggleEditor").onclick = () => {
   if (drawerContent.style.display !== "flex") return;
   editorBox.style.display = editorBox.style.display === "flex" ? "none" : "flex";
+};
+
+document.getElementById("toggleLayers").onclick = () => {
+  if (drawerContent.style.display !== "flex") return;
+  const layersPanel = document.getElementById("layersPanel");
+  const isVis = layersPanel.style.display === "flex";
+  if (isVis) {
+    layersPanel.style.display = "none";
+  } else {
+    buildLayersPanel();
+    layersPanel.style.display = "flex";
+  }
+};
+
+document.getElementById("closeLayersPanel").onclick = () => {
+  document.getElementById("layersPanel").style.display = "none";
 };
 
 document.getElementById("closeAttributes").onclick = () => attributeBox.style.display = "none";
@@ -1079,9 +1261,9 @@ searchInput.addEventListener('keydown', (e) => {
 
 document.addEventListener('click', (e) => { if (!suggestionBox.contains(e.target) && e.target !== searchInput) closeSuggestions(); });
 
-/* ========================= */
-/*   USER LOCATION           */
-/* ========================= */
+
+/*   USER LOCATION  */
+
 document.getElementById("locationBtn").onclick = () => {
   if (!navigator.geolocation) { alert("Geolocation not supported"); return; }
   navigator.geolocation.getCurrentPosition(pos => {
@@ -1093,9 +1275,9 @@ document.getElementById("locationBtn").onclick = () => {
   }, ()=>alert("Unable to get location"));
 };
 
-/* ========================= */
+
 /*   FILE UPLOAD (SHP/JSON/KML) */
-/* ========================= */
+
 document.getElementById("uploadShpBtn").onclick = () => { fileInput.accept = '.zip'; fileInput.dataset.type = 'shapefile'; fileInput.click(); };
 document.getElementById("uploadGeoJsonBtn").onclick = () => { fileInput.accept = '.geojson,.json'; fileInput.dataset.type = 'geojson'; fileInput.click(); };
 document.getElementById("uploadKmlBtn").onclick = () => { fileInput.accept = '.kml'; fileInput.dataset.type = 'kml'; fileInput.click(); };
@@ -1152,20 +1334,25 @@ fileInput.onchange = async (e) => {
         if (!feat.get('color')) feat.set('color', '#' + Math.floor(Math.random()*0xFFFFFF).toString(16).padStart(6,'0'));
       });
 
-      // **Add features to a single layer** (or create a new layer)
-      if (!window.multiFileLayer) {
-        window.multiFileLayer = new ol.layer.Vector({
-          source: new ol.source.Vector({ features }),
-          zIndex: 50 + map.getLayers().getLength(),
-          style: featureStyle
-        });
-        map.addLayer(window.multiFileLayer);
-      } else {
-        window.multiFileLayer.getSource().addFeatures(features);
-      }
+      // Create separate layer for each file
+      const layerName = f.name.replace(/\.(zip|geojson|json|kml)$/i, '');
+      const newLayer = new ol.layer.Vector({
+        source: new ol.source.Vector({ features }),
+        zIndex: 50 + map.getLayers().getLength(),
+        style: featureStyle
+      });
+      
+      newLayer.set('layerName', layerName);
+      newLayer.set('fileType', name.endsWith('.zip') ? 'shapefile' : name.endsWith('.kml') ? 'kml' : 'geojson');
+      newLayer.set('featureCount', features.length);
+      
+      map.addLayer(newLayer);
+      
+      if (!window.uploadedLayers) window.uploadedLayers = [];
+      window.uploadedLayers.push(newLayer);
 
       // Fit map to all features loaded so far
-      const extent = window.multiFileLayer.getSource().getExtent();
+      const extent = newLayer.getSource().getExtent();
       if (extent && extent.every(v => isFinite(v))) {
         map.getView().fit(extent, { padding: [50,50,50,50], duration: 700, maxZoom: 16 });
       }
@@ -1178,23 +1365,42 @@ fileInput.onchange = async (e) => {
     }
   }
 
-//  SHOW ATTRIBUTE TABLE AFTER ALL FILES ARE LOADED
-buildAttributeTable();
-document.getElementById("attributeContainer").style.display = "flex";
-
-loader.style.display = 'none';
-fileInput.value = "";
-
+  // Show attribute table and layers panel after all files loaded
+  buildAttributeTable();
+  document.getElementById("attributeContainer").style.display = "flex";
   
+  buildLayersPanel();
+  document.getElementById("layersPanel").style.display = "flex";
 
-  //loader.style.display = 'none';
-  //fileInput.value = "";
+  loader.style.display = 'none';
+  fileInput.value = "";
 };
 
 let selectedFeature = null;
 
 const selectInteraction = new ol.interaction.Select({
-  layers: [vectorLayer, shapefileLayer, geojsonLayer, kmlLayer],
+  filter: function(feature, layer) {
+    if (layer === vectorLayer || 
+        layer === shapefileLayer || 
+        layer === geojsonLayer || 
+        layer === kmlLayer) {
+      return true;
+    }
+    
+    if (window.uploadedLayers && window.uploadedLayers.includes(layer)) {
+      return true;
+    }
+    
+    if (window.multiFileLayer && layer === window.multiFileLayer) {
+      return true;
+    }
+    
+    if (layer instanceof ol.layer.Vector) {
+      return true;
+    }
+    
+    return false;
+  },
   style: new ol.style.Style({
     stroke: new ol.style.Stroke({ color: '#ffcc00', width: 4 }),
     fill: new ol.style.Fill({ color: '#ffcc0033' }),
@@ -1215,20 +1421,63 @@ selectInteraction.on('select', (evt) => {
     hidePopup();
   }
 });
-
 function findFeatureSource(feature) {
-  if (vectorSource.getFeatureById(feature.getId())) return vectorSource;
-  if (shapefileLayer.getSource().getFeatureById(feature.getId())) return shapefileLayer.getSource();
-  if (geojsonLayer.getSource().getFeatureById(feature.getId())) return geojsonLayer.getSource();
-  if (kmlLayer.getSource().getFeatureById(feature.getId())) return kmlLayer.getSource();
+  if (!feature) return null;
+  
+  const fid = feature.getId();
+  
+  if (vectorSource.getFeatureById(fid)) return vectorSource;
+  if (shapefileLayer.getSource().getFeatureById(fid)) return shapefileLayer.getSource();
+  if (geojsonLayer.getSource().getFeatureById(fid)) return geojsonLayer.getSource();
+  if (kmlLayer.getSource().getFeatureById(fid)) return kmlLayer.getSource();
+  
+  if (window.uploadedLayers && Array.isArray(window.uploadedLayers)) {
+    for (let layer of window.uploadedLayers) {
+      if (layer && layer.getSource) {
+        const src = layer.getSource();
+        if (src && src.getFeatureById && src.getFeatureById(fid)) {
+          return src;
+        }
+        if (src && src.getFeatures && src.getFeatures().includes(feature)) {
+          return src;
+        }
+      }
+    }
+  }
+  
+  if (window.multiFileLayer && window.multiFileLayer.getSource) {
+    const src = window.multiFileLayer.getSource();
+    if (src) {
+      if (src.getFeatureById && src.getFeatureById(fid)) return src;
+      if (src.getFeatures && src.getFeatures().includes(feature)) return src;
+    }
+  }
+  
   if (vectorSource.getFeatures().includes(feature)) return vectorSource;
   if (shapefileLayer.getSource().getFeatures().includes(feature)) return shapefileLayer.getSource();
   if (geojsonLayer.getSource().getFeatures().includes(feature)) return geojsonLayer.getSource();
   if (kmlLayer.getSource().getFeatures().includes(feature)) return kmlLayer.getSource();
-  return null;
+  
+  let foundSource = null;
+  map.getLayers().forEach(layer => {
+    if (foundSource) return;
+    if (layer instanceof ol.layer.Vector) {
+      const src = layer.getSource();
+      if (src && src.getFeatures) {
+        if (src.getFeatureById && src.getFeatureById(fid)) {
+          foundSource = src;
+        } else if (src.getFeatures().includes(feature)) {
+          foundSource = src;
+        }
+      }
+    }
+  });
+  
+  return foundSource;
 }
-
-function findByIdAcrossSources(id) {
+  function findByIdAcrossSources(id) {
+  if (!id) return null;
+  
   let f = vectorSource.getFeatureById(id);
   if (f) return f;
   f = shapefileLayer.getSource().getFeatureById(id);
@@ -1236,25 +1485,98 @@ function findByIdAcrossSources(id) {
   f = geojsonLayer.getSource().getFeatureById(id);
   if (f) return f;
   f = kmlLayer.getSource().getFeatureById(id);
-  return f;
+  if (f) return f;
+  
+  if (window.uploadedLayers && Array.isArray(window.uploadedLayers)) {
+    for (let layer of window.uploadedLayers) {
+      if (layer && layer.getSource) {
+        const src = layer.getSource();
+        if (src && src.getFeatureById) {
+          f = src.getFeatureById(id);
+          if (f) return f;
+        }
+      }
+    }
+  }
+  
+  if (window.multiFileLayer && window.multiFileLayer.getSource) {
+    const src = window.multiFileLayer.getSource();
+    if (src && src.getFeatureById) {
+      f = src.getFeatureById(id);
+      if (f) return f;
+    }
+  }
+  
+  let foundFeature = null;
+  map.getLayers().forEach(layer => {
+    if (foundFeature) return;
+    if (layer instanceof ol.layer.Vector) {
+      const src = layer.getSource();
+      if (src && src.getFeatureById) {
+        const feat = src.getFeatureById(id);
+        if (feat) foundFeature = feat;
+      }
+    }
+  });
+  
+  return foundFeature;
 }
+/* GET ALL FEATURES */
 
-/*   ATTRIBUTE TABLE */
-
-function buildAttributeTable() {
+function getAllFeatures() {
+  let allFeatures = [];
+  
+  allFeatures = allFeatures.concat(vectorSource.getFeatures());
+  allFeatures = allFeatures.concat(shapefileLayer.getSource().getFeatures());
+  allFeatures = allFeatures.concat(geojsonLayer.getSource().getFeatures());
+  allFeatures = allFeatures.concat(kmlLayer.getSource().getFeatures());
+  
+  if (window.uploadedLayers && Array.isArray(window.uploadedLayers)) {
+    window.uploadedLayers.forEach(layer => {
+      if (layer && layer.getSource && typeof layer.getSource === 'function') {
+        const source = layer.getSource();
+        if (source && source.getFeatures && typeof source.getFeatures === 'function') {
+          allFeatures = allFeatures.concat(source.getFeatures());
+        }
+      }
+    });
+  }
+  
+  if (window.multiFileLayer && window.multiFileLayer.getSource) {
+    const source = window.multiFileLayer.getSource();
+    if (source && source.getFeatures) {
+      allFeatures = allFeatures.concat(source.getFeatures());
+    }
+  }
+  
+  map.getLayers().forEach(layer => {
+    if (layer instanceof ol.layer.Vector && 
+        layer !== vectorLayer && 
+        layer !== shapefileLayer && 
+        layer !== geojsonLayer && 
+        layer !== kmlLayer &&
+        layer !== window.multiFileLayer) {
+      
+      const source = layer.getSource();
+      if (source && source.getFeatures) {
+        const features = source.getFeatures();
+        features.forEach(f => {
+          if (!allFeatures.some(existing => existing.getId() === f.getId())) {
+            allFeatures.push(f);
+          }
+        });
+      }
+    }
+  });
+  
+  return allFeatures;
+}
+  function buildAttributeTable() {
 
   attrHead.innerHTML = "";
   attrBody.innerHTML = "";
 
-  const feats = [].concat(
-    vectorSource.getFeatures(),
-    shapefileLayer.getSource().getFeatures(),
-    geojsonLayer.getSource().getFeatures(),
-    kmlLayer.getSource().getFeatures(),
-    (window.multiFileLayer && window.multiFileLayer.getSource())
-      ? window.multiFileLayer.getSource().getFeatures()
-      : []
-  );
+  const feats = getAllFeatures();
 
   if (!feats.length) {
     attrHead.innerHTML = "<tr><th>No features</th></tr>";
@@ -1385,8 +1707,6 @@ function buildAttributeTable() {
   };
 
 }
-
-
 // ADD THIS NEW FUNCTION RIGHT AFTER buildAttributeTable() ↓
 function setupCheckboxListeners() {
   const selectAllCheckbox = document.getElementById('selectAllCheckbox');
@@ -1397,20 +1717,127 @@ function setupCheckboxListeners() {
     });
   }
 }
+  /*BUILD LAYERS PANEL*/
 
+function buildLayersPanel() {
+  const layersList = document.getElementById('layersList');
+  if (!layersList) return;
+  
+  layersList.innerHTML = '';
+  
+  if (!window.uploadedLayers) window.uploadedLayers = [];
+  
+  if (window.uploadedLayers.length === 0) {
+    layersList.innerHTML = '<div style="text-align:center; padding:20px; color:rgba(255,255,255,0.5);">No layers loaded</div>';
+    return;
+  }
+  
+  const sortedLayers = [...window.uploadedLayers].sort((a,b) => b.getZIndex() - a.getZIndex());
+  
+  sortedLayers.forEach((layer, index) => {
+    const layerName = layer.get('layerName') || `Layer ${index+1}`;
+    const featureCount = layer.getSource().getFeatures().length;
+    const opacity = layer.getOpacity();
+    const visible = layer.getVisible();
+    
+    const layerDiv = document.createElement('div');
+    layerDiv.className = 'layer-item';
+    layerDiv.draggable = true;
+    layerDiv.dataset.layerId = layer.ol_uid;
+    
+    layerDiv.innerHTML = `
+      <div class="layer-header-row">
+        <i class="fas fa-grip-vertical layer-drag-handle"></i>
+        <input type="checkbox" class="layer-visibility-check" ${visible ? 'checked' : ''}>
+        <span class="layer-name">${escapeHtml(layerName)}</span>
+        <span class="layer-count-badge">${featureCount}</span>
+        <button class="layer-delete-btn" title="Delete Layer">
+          <i class="fas fa-trash"></i>
+        </button>
+      </div>
+      <div class="layer-opacity-row">
+        <span class="layer-opacity-label">Opacity</span>
+        <input type="range" class="layer-opacity-slider" min="0" max="100" value="${Math.round(opacity*100)}">
+        <span class="layer-opacity-value">${Math.round(opacity*100)}%</span>
+      </div>
+    `;
+    
+    layersList.appendChild(layerDiv);
+    
+    const checkbox = layerDiv.querySelector('.layer-visibility-check');
+    checkbox.onchange = () => {
+      layer.setVisible(checkbox.checked);
+    };
+    
+    const slider = layerDiv.querySelector('.layer-opacity-slider');
+    const valueSpan = layerDiv.querySelector('.layer-opacity-value');
+    slider.oninput = () => {
+      const val = slider.value / 100;
+      layer.setOpacity(val);
+      valueSpan.textContent = slider.value + '%';
+    };
+    
+    const deleteBtn = layerDiv.querySelector('.layer-delete-btn');
+    deleteBtn.onclick = () => {
+      if (confirm(`Delete layer "${layerName}"?`)) {  // ← FIXED: Added parentheses
+        map.removeLayer(layer);
+        window.uploadedLayers = window.uploadedLayers.filter(l => l !== layer);
+        buildLayersPanel();
+        buildAttributeTable();
+      }
+    };
+    
+    layerDiv.addEventListener('dragstart', (e) => {
+      layerDiv.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', layer.ol_uid);
+    });
+    
+    layerDiv.addEventListener('dragend', () => {
+      layerDiv.classList.remove('dragging');
+    });
+    
+    layerDiv.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+    });
+    
+    layerDiv.addEventListener('drop', (e) => {
+      e.preventDefault();
+      const draggedId = e.dataTransfer.getData('text/plain');
+      const draggedLayer = window.uploadedLayers.find(l => l.ol_uid == draggedId);
+      const targetLayer = layer;
+      
+      if (draggedLayer && draggedLayer !== targetLayer) {
+        const dragZ = draggedLayer.getZIndex();
+        const targetZ = targetLayer.getZIndex();
+        draggedLayer.setZIndex(targetZ);
+        targetLayer.setZIndex(dragZ);
+        buildLayersPanel();
+      }
+    });
+  });
+}
+
+function setupCheckboxListeners() {
+  const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+  if (selectAllCheckbox) {
+    selectAllCheckbox.addEventListener('change', function() {
+      const checkboxes = document.querySelectorAll('.select-checkbox');
+      checkboxes.forEach(cb => cb.checked = this.checked);
+    });
+  }
+}
 function highlightRowForFeature(f) {
   removeRowHighlights();
-  const row = attrBody.querySelector(`tr[data-fid="${f.getId()}"]`);
-  if (row) row.classList.add('table-active');
+    const row = attrBody.querySelector(`tr[data-fid="${f.getId()}"]`); 
+    if (row) row.classList.add('table-active');
 }
 
 function removeRowHighlights() {
   attrBody.querySelectorAll('tr').forEach(r => r.classList.remove('table-active'));
 }
-
-/* ========================= */
 /*   SAVE/DELETE/CENTER/EXP  */
-/* ========================= */
 document.getElementById("saveChangesBtn").onclick = () => {
   const rows = Array.from(attrBody.querySelectorAll('tr[data-fid]'));
   rows.forEach(row => {
@@ -1467,8 +1894,7 @@ document.getElementById("deleteSelectedBtn").onclick = () => {
   saveToLocal();
   showTempPopup(`Deleted ${deletedCount} feature(s)`);
 };
-
-  // **Editor Delete button**
+// **Editor Delete button**
 document.getElementById("deleteFeature").onclick = () => {
   if (!selectedFeature) {
     alert('Select a feature first to delete.');
@@ -1485,18 +1911,16 @@ document.getElementById("deleteFeature").onclick = () => {
   saveToLocal();
   showTempPopup('Feature deleted');
 };
- 
-
-document.getElementById("centerSelectedBtn").onclick = () => {
+ document.getElementById("centerSelectedBtn").onclick = () => {
   if (!selectedFeature) return alert('Select a feature first.');
   const geom = selectedFeature.getGeometry();
   const center = geom.getType&&geom.getType()==='Point' ? geom.getCoordinates() : ol.extent.getCenter(geom.getExtent());
   map.getView().animate({ center, zoom: 14, duration: 600 });
 };
 
-document.getElementById("exportAllBtn").onclick = () => {
+  document.getElementById("exportAllBtn").onclick = () => {
   const fmt = new ol.format.GeoJSON();
-  const allFeatures = [].concat(vectorSource.getFeatures(), shapefileLayer.getSource().getFeatures(), geojsonLayer.getSource().getFeatures(), kmlLayer.getSource().getFeatures());
+  const allFeatures = getAllFeatures();
   if (!allFeatures.length) return alert('No features to export');
   const data = JSON.stringify(fmt.writeFeaturesObject(allFeatures, { featureProjection: 'EPSG:3857' }), null, 2);
   const blob = new Blob([data], { type: 'application/json' });
@@ -1511,9 +1935,8 @@ document.getElementById("exportAllBtn").onclick = () => {
   showTempPopup('Features exported');
 };
 
-/* ========================= */
-/*   DRAW / MODIFY           */
-/* ========================= */
+/* DRAW / MODIFY */
+
 let drawInteraction = null;
 let modifyInteraction = null;
 
@@ -1565,10 +1988,10 @@ function addDraw(type, button) {
 function startModify() {
   removeInteractions();
   const modifySource = new ol.Collection();
-  vectorSource.getFeatures().forEach(f => modifySource.push(f));
-  shapefileLayer.getSource().getFeatures().forEach(f => modifySource.push(f));
-  geojsonLayer.getSource().getFeatures().forEach(f => modifySource.push(f));
-  kmlLayer.getSource().getFeatures().forEach(f => modifySource.push(f));
+  
+  const allFeatures = getAllFeatures();
+  allFeatures.forEach(f => modifySource.push(f));
+  
   modifyInteraction = new ol.interaction.Modify({ features: modifySource });
   map.addInteraction(modifyInteraction);
   modifyInteraction.on('modifyend', () => { buildAttributeTable(); saveToLocal(); });
@@ -1584,8 +2007,7 @@ document.getElementById('modifyFeature').onclick = startModify;
 
 document.getElementById('saveFeature').onclick = () => document.getElementById('exportAllBtn').click();
 
-/*   LOCAL STORAGE           */
-
+/* LOCAL STORAGE  */
 function saveToLocal() {
   try {
     const fmt = new ol.format.GeoJSON();
@@ -1638,9 +2060,7 @@ function loadFromLocal() {
 }
 
 loadFromLocal();
-/* ========================= */
-/*   DRAGGABLE/RESIZABLE     */
-/* ========================= */
+/* DRAGGABLE/RESIZABLE */
 (function() {
   const box = attributeBox;
   const header = box.querySelector('.box-header');
@@ -1760,9 +2180,6 @@ loadFromLocal();
     }
   });
 })();
-
-
-
 // Ensure modal handlers are set after page loads
 setTimeout(() => {
   const addAttrBtn = document.getElementById("addAttrBtn");
@@ -1777,8 +2194,6 @@ setTimeout(() => {
     };
   }
 }, 500);
-
-
 buildAttributeTable();
 </script>
 
