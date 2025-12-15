@@ -13,7 +13,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
 <style>
-  html, body { 
+html, body { 
   margin: 0; 
   height: 100%; 
   font-family: Arial, sans-serif; 
@@ -886,6 +886,7 @@
      <input type="file" id="fileInput" style="display:none" multiple>
 
 
+
     </div>
     <hr>
     <div class="basemap-group">
@@ -903,14 +904,16 @@
       </button>
     </div>
     <hr>
-     <button id="toggleAttributes" class="icon-btn" title="Attributes">
+    <button id="toggleAttributes" class="icon-btn" title="Attributes">
       <i class="fas fa-table"></i>
     </button>
     <hr>
+
     <button id="toggleLayers" class="icon-btn" title="Layers">
       <i class="fas fa-layer-group"></i>
     </button>
     <hr>
+
     <button id="toggleEditor" class="icon-btn" title="Editor Tools">
       <i class="fas fa-pencil-alt"></i> 
     </button>
@@ -943,7 +946,7 @@
   </div>
 </div>
 
-  <!--LAYERS PANEL-->
+<!--LAYERS PANEL-->
 <div id="layersPanel" class="layers-panel">
   <div class="layers-header">
     <h6><i class="fas fa-layer-group"></i> Layers</h6>
@@ -1061,13 +1064,9 @@
    window.addEventListener("load", () => {
     localStorage.removeItem("savedFeatures");
 });
-  
-document.getElementById('year').innerText = new Date().getFullYear();
+  document.getElementById('year').innerText = new Date().getFullYear();
 
-
-/*  MAP INITIALIZATION  */
-
-
+//MAP INITIALIZATION
 // Base Layers with updated URLs
 const osmLayer = new ol.layer.Tile({ source: new ol.source.OSM(), visible: true });
 const topoLayer = new ol.layer.Tile({ source: new ol.source.XYZ({ url: "https://{a-c}.tile.opentopomap.org/{z}/{x}/{y}.png" }), visible: false });
@@ -1105,12 +1104,10 @@ const map = new ol.Map({
   view: new ol.View({ center: ol.proj.fromLonLat([72.8777, 19.0760]), zoom: 12 }),
   controls: []
 });
-
 // Utilities
 function randomColor() { return '#' + Math.floor(Math.random()*0xFFFFFF).toString(16).padStart(6,'0'); }
 function safeId(p='fid') { return `${p}-${Date.now()}-${Math.random().toString(36).slice(2,8)}`; }
 function escapeHtml(t) { return (t+'').replace(/[&<>"'`=\/]/g, s => '&#'+s.charCodeAt(0)+';'); }
-
 // Custom attributes with types
 let customAttributes = [];
 let attributeTypes = {};
@@ -1118,10 +1115,7 @@ try {
   customAttributes = JSON.parse(localStorage.getItem('customAttributes')||'[]')||[]; 
   attributeTypes = JSON.parse(localStorage.getItem('attributeTypes')||'{}')|| {};
 } catch(e) { customAttributes = []; attributeTypes = {}; }
-
-
-/*   POPUP   */
-
+//POPUP
 const popup = document.getElementById("popup");
 const overlay = new ol.Overlay({ element: popup, positioning: "bottom-center", stopEvent: false, offset: [0,-12] });
 map.addOverlay(overlay);
@@ -1149,9 +1143,7 @@ function showTempPopup(msg, dur=2500) {
   popup.style.top = '50%'; popup.style.left = '50%'; popup.style.transform = 'translate(-50%,-50%)'; popup.style.zIndex = '99999';
   setTimeout(()=>{ popup.style.display='none'; popup.style.position='absolute'; popup.style.transform='none'; }, dur);
 }
-
-/* ELEMENTS & CONTROLS */
-
+//ELEMENTS & CONTROLS
 const drawerToggle = document.getElementById("drawerToggle");
 const drawerContent = document.querySelector(".drawer-content");
 const fileInput = document.getElementById("fileInput");
@@ -1171,7 +1163,6 @@ document.getElementById("toggleAttributes").onclick = () => {
   const isVis = attributeBox.style.display === "flex";
   if (isVis) attributeBox.style.display = "none"; else { buildAttributeTable(); attributeBox.style.display = "flex"; }
 };
-
 document.getElementById("toggleEditor").onclick = () => {
   if (drawerContent.style.display !== "flex") return;
   editorBox.style.display = editorBox.style.display === "flex" ? "none" : "flex";
@@ -1192,7 +1183,6 @@ document.getElementById("toggleLayers").onclick = () => {
 document.getElementById("closeLayersPanel").onclick = () => {
   document.getElementById("layersPanel").style.display = "none";
 };
-
 document.getElementById("closeAttributes").onclick = () => attributeBox.style.display = "none";
 document.getElementById("closeEditor").onclick = () => { editorBox.style.display = "none"; removeInteractions(); };
 
@@ -1218,10 +1208,7 @@ document.getElementById("esriBtn").onclick = () => { setBase(esriLayer); documen
 // Zoom
 document.getElementById("zoomIn").onclick = () => map.getView().setZoom(map.getView().getZoom()+1);
 document.getElementById("zoomOut").onclick = () => map.getView().setZoom(map.getView().getZoom()-1);
-
-/* ========================= */
-/*   SEARCH                  */
-/* ========================= */
+//SEARCH
 const searchInput = document.getElementById("searchInput");
 const suggestionBox = document.getElementById("suggestionBox");
 let suggestionIndex = -1, currentSuggestions = [];
@@ -1259,12 +1246,8 @@ searchInput.addEventListener('keydown', (e) => {
   else if (e.key === 'Enter' && suggestionIndex >= 0 && items[suggestionIndex]) { e.preventDefault(); items[suggestionIndex].click(); }
   else if (e.key === 'Escape') closeSuggestions();
 });
-
 document.addEventListener('click', (e) => { if (!suggestionBox.contains(e.target) && e.target !== searchInput) closeSuggestions(); });
-
-
-/*   USER LOCATION  */
-
+//USER LOCATION
 document.getElementById("locationBtn").onclick = () => {
   if (!navigator.geolocation) { alert("Geolocation not supported"); return; }
   navigator.geolocation.getCurrentPosition(pos => {
@@ -1275,14 +1258,24 @@ document.getElementById("locationBtn").onclick = () => {
     map.getView().animate({ center: ol.proj.fromLonLat(coords), zoom: 15, duration: 600 });
   }, ()=>alert("Unable to get location"));
 };
+//FILE UPLOAD (SHP/JSON/KML) 
+document.getElementById("uploadShpBtn").onclick = () => {
+  fileInput.accept = '.zip';
+  fileInput.dataset.type = 'shapefile';
+  fileInput.click();
+};
 
+document.getElementById("uploadGeoJsonBtn").onclick = () => {
+  fileInput.accept = '.geojson,.json';
+  fileInput.dataset.type = 'geojson';
+  fileInput.click();
+};
 
-/*   FILE UPLOAD (SHP/JSON/KML) */
-
-document.getElementById("uploadShpBtn").onclick = () => { fileInput.accept = '.zip'; fileInput.dataset.type = 'shapefile'; fileInput.click(); };
-document.getElementById("uploadGeoJsonBtn").onclick = () => { fileInput.accept = '.geojson,.json'; fileInput.dataset.type = 'geojson'; fileInput.click(); };
-document.getElementById("uploadKmlBtn").onclick = () => { fileInput.accept = '.kml'; fileInput.dataset.type = 'kml'; fileInput.click(); };
-
+document.getElementById("uploadKmlBtn").onclick = () => {
+  fileInput.accept = '.kml';
+  fileInput.dataset.type = 'kml';
+  fileInput.click();
+};
 fileInput.onchange = async (e) => {
   const files = e.target.files;
   if (!files || !files.length) return;
@@ -1376,9 +1369,7 @@ fileInput.onchange = async (e) => {
   loader.style.display = 'none';
   fileInput.value = "";
 };
-
 let selectedFeature = null;
-
 const selectInteraction = new ol.interaction.Select({
   filter: function(feature, layer) {
     if (layer === vectorLayer || 
@@ -1408,6 +1399,7 @@ const selectInteraction = new ol.interaction.Select({
     image: new ol.style.Circle({ radius:9, fill: new ol.style.Fill({ color:'#ffcc00' }), stroke: new ol.style.Stroke({ color:'#fff', width:2 }) })
   })
 });
+
 map.addInteraction(selectInteraction);
 
 selectInteraction.on('select', (evt) => {
@@ -1476,7 +1468,7 @@ function findFeatureSource(feature) {
   
   return foundSource;
 }
-  function findByIdAcrossSources(id) {
+function findByIdAcrossSources(id) {
   if (!id) return null;
   
   let f = vectorSource.getFeatureById(id);
@@ -1522,8 +1514,7 @@ function findFeatureSource(feature) {
   
   return foundFeature;
 }
-/* GET ALL FEATURES */
-
+//GET ALL FEATURES        
 function getAllFeatures() {
   let allFeatures = [];
   
@@ -1708,7 +1699,7 @@ function getAllFeatures() {
   };
 
 }
-// ADD THIS NEW FUNCTION RIGHT AFTER buildAttributeTable() ↓
+// ADD THIS NEW FUNCTION RIGHT AFTER buildAttributeTable
 function setupCheckboxListeners() {
   const selectAllCheckbox = document.getElementById('selectAllCheckbox');
   if (selectAllCheckbox) {
@@ -1718,8 +1709,7 @@ function setupCheckboxListeners() {
     });
   }
 }
-  /*BUILD LAYERS PANEL*/
-
+//BUILD LAYERS PANEL
 function buildLayersPanel() {
   const layersList = document.getElementById('layersList');
   if (!layersList) return;
@@ -1831,14 +1821,14 @@ function setupCheckboxListeners() {
 }
 function highlightRowForFeature(f) {
   removeRowHighlights();
-    const row = attrBody.querySelector(`tr[data-fid="${f.getId()}"]`); 
-    if (row) row.classList.add('table-active');
+  const row = attrBody.querySelector(`tr[data-fid="${f.getId()}"]`); 
+  if (row) row.classList.add('table-active');
 }
 
 function removeRowHighlights() {
   attrBody.querySelectorAll('tr').forEach(r => r.classList.remove('table-active'));
 }
-/*   SAVE/DELETE/CENTER/EXP  */
+//SAVE/DELETE/CENTER/EXP  
 document.getElementById("saveChangesBtn").onclick = () => {
   const rows = Array.from(attrBody.querySelectorAll('tr[data-fid]'));
   rows.forEach(row => {
@@ -1895,7 +1885,8 @@ document.getElementById("deleteSelectedBtn").onclick = () => {
   saveToLocal();
   showTempPopup(`Deleted ${deletedCount} feature(s)`);
 };
-// **Editor Delete button**
+
+  // **Editor Delete button**
 document.getElementById("deleteFeature").onclick = () => {
   if (!selectedFeature) {
     alert('Select a feature first to delete.');
@@ -1912,13 +1903,14 @@ document.getElementById("deleteFeature").onclick = () => {
   saveToLocal();
   showTempPopup('Feature deleted');
 };
- document.getElementById("centerSelectedBtn").onclick = () => {
+ 
+
+document.getElementById("centerSelectedBtn").onclick = () => {
   if (!selectedFeature) return alert('Select a feature first.');
   const geom = selectedFeature.getGeometry();
   const center = geom.getType&&geom.getType()==='Point' ? geom.getCoordinates() : ol.extent.getCenter(geom.getExtent());
   map.getView().animate({ center, zoom: 14, duration: 600 });
 };
-
   document.getElementById("exportAllBtn").onclick = () => {
   const fmt = new ol.format.GeoJSON();
   const allFeatures = getAllFeatures();
@@ -1935,9 +1927,7 @@ document.getElementById("deleteFeature").onclick = () => {
   URL.revokeObjectURL(url);
   showTempPopup('Features exported');
 };
-
-/* DRAW / MODIFY */
-
+/*DRAW / MODIFY*/
 let drawInteraction = null;
 let modifyInteraction = null;
 
@@ -1985,8 +1975,7 @@ function addDraw(type, button) {
     removeInteractions();
   });
 }
-
-function startModify() {
+  function startModify() {
   removeInteractions();
   const modifySource = new ol.Collection();
   
@@ -1994,6 +1983,7 @@ function startModify() {
   allFeatures.forEach(f => modifySource.push(f));
   
   modifyInteraction = new ol.interaction.Modify({ features: modifySource });
+
   map.addInteraction(modifyInteraction);
   modifyInteraction.on('modifyend', () => { buildAttributeTable(); saveToLocal(); });
   const btn = document.getElementById('modifyFeature');
@@ -2008,7 +1998,8 @@ document.getElementById('modifyFeature').onclick = startModify;
 
 document.getElementById('saveFeature').onclick = () => document.getElementById('exportAllBtn').click();
 
-/* LOCAL STORAGE  */
+/*   LOCAL STORAGE           */
+
 function saveToLocal() {
   try {
     const fmt = new ol.format.GeoJSON();
@@ -2061,7 +2052,7 @@ function loadFromLocal() {
 }
 
 loadFromLocal();
-/* DRAGGABLE/RESIZABLE */
+//DRAGGABLE/RESIZABLE
 (function() {
   const box = attributeBox;
   const header = box.querySelector('.box-header');
@@ -2181,6 +2172,9 @@ loadFromLocal();
     }
   });
 })();
+
+
+
 // Ensure modal handlers are set after page loads
 setTimeout(() => {
   const addAttrBtn = document.getElementById("addAttrBtn");
@@ -2195,6 +2189,8 @@ setTimeout(() => {
     };
   }
 }, 500);
+
+
 buildAttributeTable();
 </script>
 
