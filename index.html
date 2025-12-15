@@ -75,85 +75,103 @@ html, body {
   display: flex; justify-content: center; align-items: center; z-index: 300; font-size: 13px;
   box-shadow: 0 -2px 8px rgba(0,0,0,0.2);
 }
-/*Drawer - FIXED */
+/* Drawer - FIXED */
 .drawer { 
     position: fixed; 
     top: 70px; 
     left: 12px; 
     z-index: 300; 
 }
+
 .drawer-toggle { 
   font-size: 20px; 
-  background: #2c3e50;  
-  color: white;  
+  background: #2c3e50;
+  color: white;
   border: none; 
-  padding: 10px 12px; 
+  padding: 12px 14px; 
   border-radius: 8px; 
   cursor: pointer; 
-  box-shadow: 0 2px 8px rgba(0,0,0,0.15); 
+  box-shadow: 0 2px 8px rgba(0,0,0,0.26); 
   transition: all 0.3s;
 }
+
 .drawer-toggle:hover { 
     transform: translateY(-2px); 
-    box-shadow: 0 4px 12px rgba(0,0,0,0.25);  
-    background: #34495e;  
+    box-shadow: 0 4px 12px rgba(71, 170, 24, 0.2); 
 }
+
 .drawer-content { 
   display: none; 
   flex-direction: column; 
-  background: #ffffff;
-  padding: 10px; 
+  background: #091401; 
+  padding: 15px; 
   margin-top: 8px; 
   border-radius: 8px; 
-  box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+  box-shadow: 0 6px 20px rgba(239, 11, 42, 0.15); 
   min-width: 60px;
-}
-.drawer-content hr { 
-    margin: 8px 0; 
-    border: none; 
-    border-top: 1px solid #e0e0e0; 
+  max-width: 70px;
+  width: 60px;
+  overflow-y: auto;              /* ✓ ADDED: Allow scrolling if needed */
+  max-height: calc(100vh - 150px); /* ✓ ADDED: Limit height */
 }
 
-/* Icon buttons FIXED LAYOUT */
+.drawer-content hr { 
+    margin: 10px 0; 
+    border: none; 
+    border-top: 1px solid #bbb6b6; 
+}
+
+/* Icon buttons - FIXED */
 .icon-btn { 
   display: flex; 
   align-items: center; 
-  justify-content: flex-start;
+  justify-content: center;
   gap: 10px; 
-  padding: 10px 12px; 
+  padding: 14px 12px; 
   border-radius: 6px;
   background: #f8f9fa; 
   cursor: pointer; 
   border: 1px solid #e0e0e0; 
   transition: all 0.2s;
-  font-size: 14px; 
-  color: #333333;
-  margin: 2px 0;
+  font-size: 20px; 
+  color: #1c0f95; 
+  margin: 4px 0;
   width: 100%;
-  text-align: left;
-}
-.icon-btn i { 
-  width: 20px; 
-  text-align: center; 
-  flex-shrink: 0;
-}
-.icon-btn:hover { 
-    background: #e3f2fd;  /
-    transform: translateX(3px); 
-    border-color: #2196F3;  
-}
-.icon-btn.active { 
-    background: #2196F3;
-    color: #ffffff; 
-    border-color: #1976D2;
+  text-align: center;
+  min-height: 48px;
 }
 
+.icon-btn i { 
+  width: 24px; 
+  font-size: 20px;
+  text-align: center; 
+  flex-shrink: 0;
+  display: block;
+}
+
+.icon-btn:hover { 
+    background: #77c5ee; 
+    transform: translateX(3px); 
+}
+
+.icon-btn.active { 
+    background: #ecf3eca8; 
+    color: #e06b6b; 
+    border-color: #e40813; 
+}
 
 .upload-section, .basemap-group { 
     display: flex; 
     flex-direction: column; 
-    gap: 4px; 
+    gap: 6px; 
 }
+
+
+/*.upload-section, .basemap-group { 
+    display: flex; 
+    flex-direction: column; 
+    gap: 4px; 
+}*/
 
 /* Attribute Box */
 .attribute-box { 
