@@ -1278,6 +1278,16 @@ fileInput.onchange = async (e) => {
   const files = e.target.files;
   if (!files || !files.length) return;
 
+   const MAX_SIZE = 50 * 1024 * 1024; // 50 MB limit file validation
+  for (let file of files) {
+    const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
+    if (file.size > MAX_SIZE) {
+      alert(`File too large!\n\nFile: ${file.name}\nSize: ${sizeMB} MB\nMax allowed: 50 MB\n\n💡 Tip: Split your shapefile into smaller parts`);
+      fileInput.value = "";
+      return;
+    }
+  }
+
   const loader = document.getElementById('loader');
   const loaderText = document.getElementById('loaderText');
   const loaderProgress = document.getElementById('loaderProgress');
@@ -1326,6 +1336,29 @@ fileInput.onchange = async (e) => {
         if (!feat.get('color')) feat.set('color', '#' + Math.floor(Math.random()*0xFFFFFF).toString(16).padStart(6,'0'));
       });
 
+      //fraturr limit check
+      const MAX_FEATURES = 10000;
+      const originalCount = features.length;
+      
+      if (features.length > MAX_FEATURES) {
+        const proceed = confirm(
+          `⚠️ Large dataset detected!\n\n` +
+          `Total features: ${originalCount.toLocaleString()}\n` +
+          `Browser limit: ${MAX_FEATURES.toLocaleString()}\n\n` +
+          `Only first ${MAX_FEATURES.toLocaleString()} features will be loaded.\n\n` +
+          `Click OK to continue or Cancel to abort.`
+        );
+        
+        if (!proceed) {
+          loader.style.display = 'none';
+          fileInput.value = "";
+          continue;
+        }
+        
+        features = features.slice(0, MAX_FEATURES);
+        showTempPopup(`⚠️ Loaded ${MAX_FEATURES.toLocaleString()} of ${originalCount.toLocaleString()} features`);
+      }
+
       // Create separate layer for each file
       const layerName = f.name.replace(/\.(zip|geojson|json|kml)$/i, '');
       const newLayer = new ol.layer.Vector({
@@ -1353,9 +1386,35 @@ fileInput.onchange = async (e) => {
 
     } catch (err) {
       console.error(err);
-      alert("Failed to load " + f.name + ": " + (err.message || err));
+      let errorMsg = `Failed to load: ${f.name}\n\n`;
+      const fileSizeMB = (f.size / (1024 * 1024)).toFixed(2);
+      
+      if (err.message && (err.message.includes('memory') || err.message.includes('heap'))) {
+        errorMsg += `MEMORY ERROR\n\n`;
+        errorMsg += `File size: ${fileSizeMB} MB\n`;
+        errorMsg += `This file is too large for your browser to handle.\n\n`;
+        errorMsg += `Solutions:\n`;
+        errorMsg += `Use a smaller file (< 20 MB recommended)\n`;
+        errorMsg += `Simplify geometry in QGIS/ArcGIS\n`;
+        errorMsg += ` Split into multiple files\n`;
+        errorMsg += ` Use desktop GIS software for large files`;
+      } else if (f.size > 30 * 1024 * 1024) {
+        errorMsg += `LARGE FILE WARNING\n\n`;
+        errorMsg += `File size: ${fileSizeMB} MB\n`;
+        errorMsg += `Large files may cause browser issues.\n\n`;
+        errorMsg += `Error: ${err.message || err}`;
+      } else {
+        errorMsg += `Error details: ${err.message || err}\n\n`;
+        errorMsg += ` Check if file format is correct:\n`;
+        errorMsg += ` Shapefile: Must be .zip with .shp, .shx, .dbf\n`;
+        errorMsg += ` GeoJSON: Valid JSON format\n`;
+        errorMsg += ` KML: Valid XML format`;
+      }
+      
+      alert(errorMsg);
     }
   }
+
 
   // Show attribute table and layers panel after all files loaded
   buildAttributeTable();
@@ -1573,6 +1632,40 @@ function getAllFeatures() {
     attributeBox.style.display = "none";
     return;
   }
+
+const ROWS_PER_PAGE = 100;
+  if (!window.attrTablePage) window.attrTablePage = 0;
+  
+  const totalPages = Math.ceil(feats.length / ROWS_PER_PAGE);
+  const startIdx = window.attrTablePage * ROWS_PER_PAGE;
+  const endIdx = Math.min(startIdx + ROWS_PER_PAGE, feats.length);
+  const displayFeats = feats.slice(startIdx, endIdx);
+  
+  // Add pagination controls if needed
+  if (feats.length > ROWS_PER_PAGE) {
+    const paginationDiv = document.createElement('div');
+    paginationDiv.style.cssText = 'padding:10px; background:rgba(0,229,255,0.15); border-radius:6px; margin-bottom:10px; text-align:center; color:#00e5ff; font-weight:500;';
+    paginationDiv.innerHTML = `
+      📊 Showing ${startIdx + 1}-${endIdx} of ${feats.length} features | 
+      <button style="margin:0 5px; padding:4px 12px; background:#0d6efd; color:white; border:none; border-radius:4px; cursor:pointer;" 
+        onclick="window.attrTablePage=Math.max(0,${window.attrTablePage}-1); buildAttributeTable();" 
+        ${window.attrTablePage === 0 ? 'disabled' : ''}>◀ Previous</button>
+      <span style="padding:0 15px;">Page ${window.attrTablePage + 1} / ${totalPages}</span>
+      <button style="margin:0 5px; padding:4px 12px; background:#0d6efd; color:white; border:none; border-radius:4px; cursor:pointer;" 
+        onclick="window.attrTablePage=Math.min(${totalPages - 1},${window.attrTablePage}+1); buildAttributeTable();" 
+        ${window.attrTablePage === totalPages - 1 ? 'disabled' : ''}>Next ▶</button>
+    `;
+    
+    const tableWrapper = document.querySelector('.table-wrapper');
+    if (tableWrapper) {
+      const existingPagination = tableWrapper.previousElementSibling;
+      if (existingPagination && existingPagination.innerHTML.includes('Showing')) {
+        existingPagination.remove();
+      }
+      tableWrapper.parentNode.insertBefore(paginationDiv, tableWrapper);
+    }
+  }
+
   const keySet = new Set();
   feats.forEach(f =>
     Object.keys(f.getProperties()).forEach(k => {
@@ -1591,7 +1684,7 @@ function getAllFeatures() {
        <th>Actions</th>
      </tr>`;
 
-  feats.forEach(f => {
+  displayFeats.forEach(f => {
     if (!f.getId()) f.setId(safeId());
     const fid = f.getId();
     const tr = document.createElement("tr");
@@ -2191,6 +2284,5 @@ setTimeout(() => {
 
 buildAttributeTable();
 </script>
-
 </body>
 </html>
