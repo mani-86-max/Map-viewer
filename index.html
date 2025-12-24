@@ -587,6 +587,128 @@ html, body {
   box-shadow: 0 4px 12px rgba(0,0,0,0.2); 
 }
 
+/* Custom Magnetic North Arrow */
+.north-arrow {
+  position: fixed;
+  bottom: 50px;
+  left: 15px;
+  width: 50px;
+  height: 50px;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 50%;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  z-index: 310;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  color: #c62828;
+  border: 2px solid rgba(0,0,0,0.1);
+}
+
+.north-arrow::before {
+  content: "N";
+  font-size: 16px;
+  font-weight: 900;
+  color: #c62828;
+  margin-bottom: -2px;
+}
+
+.north-arrow::after {
+  content: "▲";
+  font-size: 20px;
+  color: #c62828;
+  margin-top: -6px;
+}
+
+.north-arrow-inner {
+  position: absolute;
+  width: 0;
+  height: 0;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-bottom: 20px solid #c62828;
+  top: 18px;
+}
+
+.north-arrow-tail {
+  position: absolute;
+  width: 0;
+  height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-top: 14px solid #666;
+  bottom: 12px;
+}
+
+/* Scale Line Control with Unit Selector */
+.scale-container {
+  position: fixed;
+  bottom: 50px;
+  right: 15px;
+  z-index: 310;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.scale-unit-selector {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 6px;
+  padding: 4px 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  display: flex;
+  gap: 4px;
+}
+
+.scale-unit-btn {
+  padding: 4px 10px;
+  border: none;
+  background: transparent;
+  color: #666;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.scale-unit-btn:hover {
+  background: rgba(13, 110, 253, 0.1);
+  color: #0d6efd;
+}
+
+.scale-unit-btn.active {
+  background: #0d6efd;
+  color: white;
+}
+
+.ol-scale-line {
+  position: relative !important;
+  background: rgba(255, 255, 255, 0.95) !important;
+  border-radius: 8px !important;
+  padding: 10px 14px !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15) !important;
+  border: none !important;
+  min-width: 140px !important;
+}
+
+.ol-scale-line-inner {
+  border: 3px solid #333 !important;
+  border-top: none !important;
+  color: #333 !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  text-align: center !important;
+  margin: 0 !important;
+  padding: 5px 10px 3px 10px !important;
+  font-family: Arial, sans-serif !important;
+  line-height: 1.3 !important;
+  background: white !important;
+}
+
 /* Modal for adding attributes with types */
 .modal-backdrop.show { 
   opacity: 0.5; 
@@ -1124,7 +1246,7 @@ html, body {
   <div class="geo-tool-section">
     <h6><i class="fas fa-compress-arrows-alt"></i> Intersect</h6>
     <div class="geo-result-info" style="margin-bottom:8px;">
-      ℹ️ Select 2+ overlapping features
+       Select 2+ overlapping features
     </div>
     <button id="runIntersect" class="geo-btn geo-btn-intersect">
       <i class="fas fa-play"></i> Find Intersection
@@ -1145,6 +1267,23 @@ html, body {
     </button>
     <div class="geo-result-info">ℹ️ Merge selected features into one</div>
   </div>
+</div>
+
+<!-- NORTH ARROW -->
+<div class="north-arrow" title="Magnetic North">
+  <div class="north-arrow-inner"></div>
+  <div class="north-arrow-tail"></div>
+</div>
+
+<!-- SCALE CONTAINER -->
+<div class="scale-container">
+  <div class="scale-unit-selector">
+    <button class="scale-unit-btn active" data-unit="metric" title="Metric (m/km)">m/km</button>
+    <button class="scale-unit-btn" data-unit="imperial" title="Imperial (ft/mi)">ft/mi</button>
+    <button class="scale-unit-btn" data-unit="nautical" title="Nautical Miles">nm</button>
+    <button class="scale-unit-btn" data-unit="us" title="US Units">US</button>
+  </div>+
+  <div id="scaleLineControl"></div>
 </div>
 
 <!-- ZOOM + LOCATION -->
@@ -1278,6 +1417,29 @@ const map = new ol.Map({
   view: new ol.View({ center: ol.proj.fromLonLat([72.8777, 19.0760]), zoom: 12 }),
   controls: []
 });
+
+// Add Scale Line Control
+const scaleControl = new ol.control.ScaleLine({
+  units: 'metric',
+  bar: true,
+  steps: 2,
+  text: true,
+  minWidth: 100,
+  target: document.getElementById('scaleLineControl')
+});
+map.addControl(scaleControl);
+// Unit Selector Functionality
+document.querySelectorAll('.scale-unit-btn').forEach(btn => {
+  btn.addEventListener('click', function() {
+    document.querySelectorAll('.scale-unit-btn').forEach(b => b.classList.remove('active'));
+    this.classList.add('active');
+    
+    const unit = this.dataset.unit;
+    scaleControl.setUnits(unit);
+  });
+});
+
+
 // Utilities
 function randomColor() { return '#' + Math.floor(Math.random()*0xFFFFFF).toString(16).padStart(6,'0'); }
 function safeId(p='fid') { return `${p}-${Date.now()}-${Math.random().toString(36).slice(2,8)}`; }
