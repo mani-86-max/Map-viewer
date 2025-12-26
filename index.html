@@ -605,6 +605,9 @@ html, body {
   font-weight: bold;
   color: #c62828;
   border: 2px solid rgba(0,0,0,0.1);
+  transition: transform 0.3s ease;
+  cursor: pointer;
+  user-select: none;
 }
 
 .north-arrow::before {
@@ -1428,7 +1431,7 @@ const scaleControl = new ol.control.ScaleLine({
   target: document.getElementById('scaleLineControl')
 });
 map.addControl(scaleControl);
-// Unit Selector Functionality
+// Unit Selector Function
 document.querySelectorAll('.scale-unit-btn').forEach(btn => {
   btn.addEventListener('click', function() {
     document.querySelectorAll('.scale-unit-btn').forEach(b => b.classList.remove('active'));
@@ -1439,6 +1442,35 @@ document.querySelectorAll('.scale-unit-btn').forEach(btn => {
   });
 });
 
+  // North Arrow Ro 
+const northArrow = document.querySelector('.north-arrow');
+
+if (northArrow) {
+  // Rotate arrow when map rot
+  map.getView().on('change:rotation', function() {
+    const rotation = map.getView().getRotation();
+    const degrees = (rotation * 180 / Math.PI);
+    northArrow.style.transform = `rotate(${-degrees}deg)`;
+  });
+
+  // Click on north 
+  northArrow.addEventListener('click', function() {
+    const currentRotation = map.getView().getRotation();
+    map.getView().animate({ 
+      rotation: currentRotation + (Math.PI / 4), // Rotate 45° clockwise
+      duration: 600 
+    });
+  });
+
+  // Optional: Right-click to reset rotation to north
+  northArrow.addEventListener('contextmenu', function(e) {
+    e.preventDefault();
+    map.getView().animate({ 
+      rotation: 0, // Reset to north
+      duration: 600 
+    });
+  });
+}
 
 // Utilities
 function randomColor() { return '#' + Math.floor(Math.random()*0xFFFFFF).toString(16).padStart(6,'0'); }
