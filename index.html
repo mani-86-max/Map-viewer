@@ -1210,7 +1210,7 @@ html, body {
     <button id="drawPolygon" class="editor-btn" title="Draw Polygon"><i class="fas fa-vector-square"></i></button>
     <button id="modifyFeature" class="editor-btn" title="Modify"><i class="fas fa-edit"></i></button>
     <button id="deleteFeature" class="editor-btn" title="Delete"><i class="fas fa-trash"></i></button>
-    <button id="saveFeature" class="editor-btn" title="Export"><i class="fas fa-save"></i></button>
+    <button id="exportDrawing" class="editor-btn" title="Export Drawing Only"><i class="fas fa-download"></i></button>
   </div>
 </div>
 
@@ -2411,22 +2411,36 @@ document.getElementById("centerSelectedBtn").onclick = () => {
   const center = geom.getType&&geom.getType()==='Point' ? geom.getCoordinates() : ol.extent.getCenter(geom.getExtent());
   map.getView().animate({ center, zoom: 14, duration: 600 });
 };
-  document.getElementById("exportAllBtn").onclick = () => {
+ document.getElementById("exportAllBtn").onclick = () => {
   const fmt = new ol.format.GeoJSON();
   const allFeatures = getAllFeatures();
-  if (!allFeatures.length) return alert('No features to export');
-  const data = JSON.stringify(fmt.writeFeaturesObject(allFeatures, { featureProjection: 'EPSG:3857' }), null, 2);
+  
+  if (!allFeatures.length) {
+    alert('No features to export!');
+    return;
+  }
+  
+  const data = JSON.stringify(
+    fmt.writeFeaturesObject(allFeatures, { 
+      featureProjection: 'EPSG:3857',
+      dataProjection: 'EPSG:4326'
+    }), 
+    null, 
+    2
+  );
+  
   const blob = new Blob([data], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = 'features.geojson';
+  a.download = `all-features-${Date.now()}.geojson`;
   document.body.appendChild(a);
   a.click();
   a.remove();
   URL.revokeObjectURL(url);
-  showTempPopup('Features exported');
-};
+  
+  showTempPopup(`✅ Exported ${allFeatures.length} feature(s)!`);
+}; 
 /*DRAW / MODIFY*/
 let drawInteraction = null;
 let modifyInteraction = null;
@@ -2495,9 +2509,37 @@ document.getElementById('drawPoint').onclick = function() { addDraw('Point', thi
 document.getElementById('drawLine').onclick = function() { addDraw('LineString', this); };
 document.getElementById('drawPolygon').onclick = function() { addDraw('Polygon', this); };
 document.getElementById('modifyFeature').onclick = startModify;
-
-document.getElementById('saveFeature').onclick = () => document.getElementById('exportAllBtn').click();
-
+// Export only drawn features (from vectorSource)
+document.getElementById('exportDrawing').onclick = () => {
+  const fmt = new ol.format.GeoJSON();
+  const drawnFeatures = vectorSource.getFeatures();
+  
+  if (!drawnFeatures.length) {
+    alert('No drawn features to export! Draw something first.');
+    return;
+  }
+  
+  const data = JSON.stringify(
+    fmt.writeFeaturesObject(drawnFeatures, { 
+      featureProjection: 'EPSG:3857',
+      dataProjection: 'EPSG:4326'
+    }), 
+    null, 
+    2
+  );
+  
+  const blob = new Blob([data], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `my-drawing-${Date.now()}.geojson`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+  
+  showTempPopup(`✅ Exported ${drawnFeatures.length} drawn feature(s)!`);
+};
 /*   LOCAL STORAGE           */
 
 function saveToLocal() {
@@ -2552,19 +2594,89 @@ function loadFromLocal() {
 }
 
 loadFromLocal();
-
-// GEOPROCESSING FUNCTIONS
-function convertToMeters(distance, unit) {
-  const conversions = {
-    'meters': 1,
-    'kilometers': 1000,
-    'feet': 0.3048,
-    'miles': 1609.34
-  };
-  return distance * (conversions[unit] || 1);
+// HELPER FUNCTIONS FOR LAYER-AWARE GEOPROCESSING
+function getFeatureLayer(feature) {
+  if (!feature) return vectorSource;
+  
+  const fid = feature.getId();
+  if (vectorSource.getFeatureById(fid)) return vectorSource;
+  if (window.uploadedLayers && Array.isArray(window.uploadedLayers)) {
+    for (let layer of window.uploadedLayers) {
+      if (layer && layer.getSource) {
+        const src = layer.getSource();
+        if (src && src.getFeatureById && src.getFeatureById(fid)) {
+          return src;
+        }
+      }
+    }
+  }
+  
+  // Check standard layers
+  if (shapefileLayer.getSource().getFeatureById(fid)) return shapefileLayer.getSource();
+  if (geojsonLayer.getSource().getFeatureById(fid)) return geojsonLayer.getSource();
+  if (kmlLayer.getSource().getFeatureById(fid)) return kmlLayer.getSource();
+  return vectorSource;//default fall back
 }
 
-// Get selected features from checkboxes
+//Get geometry type from feature
+function getGeometryType(feature) {
+  const geom = feature.getGeometry();
+  if (!geom || !geom.getType) return null;
+  const type = geom.getType();
+  
+  //geometry types
+  if (type === 'Point' || type === 'MultiPoint') return 'Point';
+  if (type === 'LineString' || type === 'MultiLineString') return 'Line';
+  if (type === 'Polygon' || type === 'MultiPolygon') return 'Polygon';
+  
+  return type;
+}
+// GEOPROCESSING FUNCTIONS
+function olFeatureToTurf(olFeature) {
+  const format = new ol.format.GeoJSON();
+  const geom = olFeature.getGeometry();
+  const clonedGeom = geom.clone();
+  const geoJsonGeom = format.writeGeometryObject(clonedGeom, {
+    featureProjection: 'EPSG:3857',
+    dataProjection: 'EPSG:4326'
+  });
+  return turf.feature(geoJsonGeom);
+}
+function convertToKilometers(distance, unit) {
+  const conversions = {
+    'meters': 0.001,
+    'kilometers': 1,
+    'feet': 0.0003048,
+    'miles': 1.60934
+  };
+  return distance * (conversions[unit] || 0.001);
+}
+
+// Convert Open Layer Feature to Turf Feature
+function olFeatureToTurf(olFeature) {
+  const format = new ol.format.GeoJSON();
+  const geom = olFeature.getGeometry();
+  
+  // Clone geometry to avoid 
+  const clonedGeom = geom.clone();
+  
+  const geoJsonGeom = format.writeGeometryObject(clonedGeom, {
+    featureProjection: 'EPSG:3857',
+    dataProjection: 'EPSG:4326'
+  });
+  
+  return turf.feature(geoJsonGeom);
+}
+
+// Helper: Convert Turf Geometry to OL Geometry
+function turfToOlGeometry(turfGeometry) {
+  const format = new ol.format.GeoJSON();
+  return format.readGeometry(turfGeometry, {
+    dataProjection: 'EPSG:4326',
+    featureProjection: 'EPSG:3857'
+  });
+}
+//select features from attribute box
 function getSelectedFeaturesFromTable() {
   const selected = [];
   const checkboxes = document.querySelectorAll('.select-checkbox:checked');
@@ -2575,10 +2687,7 @@ function getSelectedFeaturesFromTable() {
   });
   return selected;
 }
-
-//───────────────────────────────────────────────────────────
-// 1. BUFFER TOOL
-//───────────────────────────────────────────────────────────
+// buffer tools
 document.getElementById("runBuffer").onclick = () => {
   const selectedFeatures = getSelectedFeaturesFromTable();
   
@@ -2595,22 +2704,19 @@ document.getElementById("runBuffer").onclick = () => {
     return;
   }
   
-  const distanceInMeters = convertToMeters(distance, unit);
-  const distanceInDegrees = distanceInMeters / 111320; // Approximate conversion
+  const distanceInKm = convertToKilometers(distance, unit);
   
   let bufferedCount = 0;
+  const bufferedExtents = [];
   
   selectedFeatures.forEach(feature => {
     try {
-      const geom = feature.getGeometry();
-      const format = new ol.format.GeoJSON();
-      const geoJsonGeom = format.writeGeometryObject(geom);
+      const turfFeature = olFeatureToTurf(feature);
+      const buffered = turf.buffer(turfFeature, distanceInKm, {units: 'kilometers'});
       
-      // Use Turf.js for buffering
-      const buffered = turf.buffer(geoJsonGeom, distanceInDegrees, {units: 'degrees'});
-      
-      if (buffered) {
-        const bufferedGeom = format.readGeometry(buffered.geometry);
+      if (buffered && buffered.geometry) {
+        const bufferedGeom = turfToOlGeometry(buffered.geometry);
+        
         const newFeature = new ol.Feature({
           geometry: bufferedGeom,
           name: `Buffer_${feature.get('name') || 'Feature'}`,
@@ -2620,23 +2726,38 @@ document.getElementById("runBuffer").onclick = () => {
         });
         
         newFeature.setId(safeId('buffer'));
-        vectorSource.addFeature(newFeature);
+        const sourceLayer = getFeatureLayer(feature);
+        sourceLayer.addFeature(newFeature);
         bufferedCount++;
+        bufferedExtents.push(bufferedGeom.getExtent());
       }
     } catch (err) {
       console.error('Buffer error:', err);
+      alert('Buffer creation failed: ' + err.message);
     }
   });
   
   if (bufferedCount > 0) {
-    showTempPopup(`Created ${bufferedCount} buffer zone(s)!`);
-    buildAttributeTable();
-    saveToLocal();
+    // for zoom of all buffers
+     if (bufferedExtents.length > 0) {
+      const combinedExtent = bufferedExtents.reduce((acc, extent) => {
+        return ol.extent.extend(acc, extent);
+      });
+      map.getView().fit(combinedExtent, { 
+        padding: [50, 50, 50, 50], 
+        duration: 600,
+        maxZoom: 16
+      });
+    }
+   showTempPopup(`Created ${bufferedCount} buffer zone(s)!`);
+   buildAttributeTable();
+   buildLayersPanel();
+   saveToLocal();
   } else {
     alert('Failed to create buffer. Please try again.');
   }
 };
-//INTERSECT TOOL
+//INTERSECT 
 document.getElementById("runIntersect").onclick = () => {
   const selectedFeatures = getSelectedFeaturesFromTable();
   
@@ -2646,33 +2767,44 @@ document.getElementById("runIntersect").onclick = () => {
   }
   
   try {
-    const format = new ol.format.GeoJSON();
-    
-    // Convert first feature to Turf geometry
-    let intersection = format.writeGeometryObject(selectedFeatures[0].getGeometry());
-    
-    // Intersect with each subsequent feature
-    for (let i = 1; i < selectedFeatures.length; i++) {
-      const nextGeom = format.writeGeometryObject(selectedFeatures[i].getGeometry());
-      
+    // Convert all features to Turf and clean them
+    const turfFeatures = selectedFeatures.map(f => {
+      const tf = olFeatureToTurf(f);
       try {
-        intersection = turf.intersect(turf.feature(intersection), turf.feature(nextGeom));
+        return turf.cleanCoords(tf);
+      } catch (e) {
+        return tf;
+      }
+    });
+    let intersection = turfFeatures[0];
+    for (let i = 1; i < turfFeatures.length; i++) {
+      try {
+        const result = turf.intersect(
+          turf.featureCollection([intersection, turfFeatures[i]])
+        );
         
-        if (!intersection) {
-          alert('No intersection found between selected features!');
+        if (!result) {
+          // If direct intersect fails, try booleanIntersect
+          const hasIntersection = turf.booleanIntersects(intersection, turfFeatures[i]);
+          if (!hasIntersection) {
+            alert('No intersection found between selected features!');
+            return;
+          }
+          alert('Geometries are too complex. Try simpler features or buffers.');
           return;
         }
         
-        intersection = intersection.geometry;
+        intersection = result;
       } catch (err) {
         console.error('Intersect error:', err);
-        alert('Cannot intersect these features. They may not overlap.');
+        alert('Cannot intersect these features: ' + err.message);
         return;
       }
     }
     
-    // Create new feature from intersection
-    const intersectGeom = format.readGeometry(intersection);
+    // Convert back to OpenLayers geometry
+    const intersectGeom = turfToOlGeometry(intersection.geometry);
+    
     const newFeature = new ol.Feature({
       geometry: intersectGeom,
       name: `Intersection_${Date.now()}`,
@@ -2681,22 +2813,27 @@ document.getElementById("runIntersect").onclick = () => {
     });
     
     newFeature.setId(safeId('intersect'));
-    vectorSource.addFeature(newFeature);
-    
+    const sourceLayer = getFeatureLayer(selectedFeatures[0]);
+    sourceLayer.addFeature(newFeature);
     // Zoom to intersection
     const extent = intersectGeom.getExtent();
-    map.getView().fit(extent, { padding: [50, 50, 50, 50], duration: 600 });
+    map.getView().fit(extent, { 
+      padding: [50, 50, 50, 50], 
+      duration: 600,
+      maxZoom: 16
+    });
     
     showTempPopup('Intersection created successfully!');
     buildAttributeTable();
+    buildLayersPanel();
     saveToLocal();
     
   } catch (err) {
     console.error('Intersect error:', err);
-    alert('Failed to create intersection. Make sure features overlap.');
+    alert('Failed to create intersection: ' + err.message);
   }
 };
-// 3. DISSOLVE TOOL
+//DISSOLVE TOOL
 document.getElementById("runDissolve").onclick = () => {
   const selectedFeatures = getSelectedFeaturesFromTable();
   
@@ -2708,35 +2845,52 @@ document.getElementById("runDissolve").onclick = () => {
   const dissolveField = document.getElementById("dissolveField").value;
   
   try {
-    const format = new ol.format.GeoJSON();
-    
     if (dissolveField === '_all_') {
-      // Dissolve all selected features into one
-      const features = selectedFeatures.map(f => {
-        const geom = format.writeGeometryObject(f.getGeometry());
-        return turf.feature(geom);
+      // Dissolve all selected features into one using union
+      let dissolved = olFeatureToTurf(selectedFeatures[0]);
+      
+      for (let i = 1; i < selectedFeatures.length; i++) {
+        try {
+          const nextFeature = olFeatureToTurf(selectedFeatures[i]);
+          dissolved = turf.union(turf.featureCollection([dissolved, nextFeature]));
+          
+          if (!dissolved) {
+            alert('Failed to dissolve features. They may not be adjacent.');
+            return;
+          }
+        } catch (err) {
+          console.error('Union error:', err);
+          alert('Dissolve failed: ' + err.message);
+          return;
+        }
+      }
+      
+      // Convert back to OpenLayers
+      const dissolvedGeom = turfToOlGeometry(dissolved.geometry);
+      
+      const newFeature = new ol.Feature({
+        geometry: dissolvedGeom,
+        name: `Dissolved_${selectedFeatures.length}_features`,
+        dissolved_count: selectedFeatures.length,
+        color: randomColor()
       });
       
-      const collection = turf.featureCollection(features);
-      const dissolved = turf.dissolve(collection);
+      newFeature.setId(safeId('dissolve'));
+      const sourceLayer = getFeatureLayer(selectedFeatures[0]);
+      sourceLayer.addFeature(newFeature);
+      // Zoom to result
+      const extent = dissolvedGeom.getExtent();
+      map.getView().fit(extent, {
+        padding: [50, 50, 50, 50],
+        duration: 600,
+        maxZoom: 16
+      });
       
-      if (dissolved && dissolved.features && dissolved.features.length > 0) {
-        const dissolvedGeom = format.readGeometry(dissolved.features[0].geometry);
-        
-        const newFeature = new ol.Feature({
-          geometry: dissolvedGeom,
-          name: `Dissolved_${selectedFeatures.length}_features`,
-          dissolved_count: selectedFeatures.length,
-          color: randomColor()
-        });
-        
-        newFeature.setId(safeId('dissolve'));
-        vectorSource.addFeature(newFeature);
-        
-        showTempPopup(`Dissolved ${selectedFeatures.length} features into 1!`);
-        buildAttributeTable();
-        saveToLocal();
-      }
+      showTempPopup(`Dissolved ${selectedFeatures.length} features into 1!`);
+      buildAttributeTable();
+      buildLayersPanel();
+      saveToLocal();
+      
     } else {
       // Group by field value and dissolve each group
       const groups = {};
@@ -2748,20 +2902,26 @@ document.getElementById("runDissolve").onclick = () => {
       });
       
       let dissolvedCount = 0;
+      const allExtents = [];
       
       Object.entries(groups).forEach(([value, features]) => {
         if (features.length < 2) return;
         
-        const turfFeatures = features.map(f => {
-          const geom = format.writeGeometryObject(f.getGeometry());
-          return turf.feature(geom);
-        });
-        
-        const collection = turf.featureCollection(turfFeatures);
-        const dissolved = turf.dissolve(collection);
-        
-        if (dissolved && dissolved.features && dissolved.features.length > 0) {
-          const dissolvedGeom = format.readGeometry(dissolved.features[0].geometry);
+        try {
+          // Union all features in this group
+          let dissolved = olFeatureToTurf(features[0]);
+          
+          for (let i = 1; i < features.length; i++) {
+            const nextFeature = olFeatureToTurf(features[i]);
+            dissolved = turf.union(turf.featureCollection([dissolved, nextFeature]));
+            
+            if (!dissolved) {
+              console.warn(`Failed to dissolve group: ${value}`);
+              return;
+            }
+          }
+          
+          const dissolvedGeom = turfToOlGeometry(dissolved.geometry);
           
           const newFeature = new ol.Feature({
             geometry: dissolvedGeom,
@@ -2772,14 +2932,32 @@ document.getElementById("runDissolve").onclick = () => {
           });
           
           newFeature.setId(safeId('dissolve'));
-          vectorSource.addFeature(newFeature);
+          const sourceLayer = getFeatureLayer(features[0]);
+          sourceLayer.addFeature(newFeature);
+          allExtents.push(dissolvedGeom.getExtent());
           dissolvedCount++;
+          
+        } catch (err) {
+          console.error(`Dissolve error for ${value}:`, err);
         }
       });
       
       if (dissolvedCount > 0) {
+        // Zoom to all dissolved features
+        if (allExtents.length > 0) {
+          const combinedExtent = allExtents.reduce((acc, extent) => {
+            return ol.extent.extend(acc, extent);
+          });
+          map.getView().fit(combinedExtent, {
+            padding: [50, 50, 50, 50],
+            duration: 600,
+            maxZoom: 16
+          });
+        }
+        
         showTempPopup(`Created ${dissolvedCount} dissolved feature(s)!`);
         buildAttributeTable();
+        buildLayersPanel();
         saveToLocal();
       } else {
         alert('No features to dissolve. Make sure you have 2+ features with same field value.');
@@ -2788,7 +2966,7 @@ document.getElementById("runDissolve").onclick = () => {
     
   } catch (err) {
     console.error('Dissolve error:', err);
-    alert('Failed to dissolve features. Make sure they are valid geometries.');
+    alert('Failed to dissolve features: ' + err.message);
   }
 };
 
