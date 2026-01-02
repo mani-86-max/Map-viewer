@@ -398,7 +398,7 @@ html, body {
   border: none; 
   border-radius: 8px; 
   cursor: pointer; 
-  font-size: 18px;
+  font-size: 18px;a
   display: flex; 
   align-items: center; 
   justify-content: center; 
@@ -414,97 +414,191 @@ html, body {
 .editor-btn.active { 
   background: #198754; 
 }
-
-/* Geoprocessing Box - ADD THIS AFTER .editor-box */
+/* Geoprocessing Box*/
 .geoprocessing-box {
   display: none;
   position: fixed;
   bottom: 50px;
   left: 15px;
-  background: rgba(97, 218, 251, 0.98);
+  background: white;
   padding: 15px;
   border-radius: 10px;
   z-index: 500;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-  min-width: 280px;
-  max-width: 350px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+  width: 260px;
+  border: 2px solid #0d6efd;
 }
+
 .geoprocessing-box .box-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
-  padding-bottom: 8px;
-  border-bottom: 2px solid rgba(0,0,0,0.15);
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #e0e0e0;
 }
+
 .geoprocessing-box h6 {
   margin: 0;
-  font-size: 16px;
-  color: #1a1a1a;
+  font-size: 15px;
+  color: #333;
   font-weight: 700;
 }
-.geo-tool-section {
-  margin-bottom: 8px;
-  padding: 8px;
-  background: rgba(255,255,255,0.4);
-  border-radius: 8px;
-  border-left: 4px solid #0d6efd;
-}
-.geo-tool-section h6 {
-  font-size: 13px;
-  margin: 0 0 8px 0;
-  color: #0d6efd;
-  font-weight: 600;
-  text-transform: uppercase;
-}
-.geo-input-group {
+
+/*buttons*/
+.geo-main-buttons {
   display: flex;
-  gap: 6px;
-  margin-bottom: 6px;
-  align-items: center;
+  flex-direction: column;
+  gap: 10px;
 }
-.geo-input-group label {
-  font-size: 12px;
-  color: #333;
-  font-weight: 500;
-  min-width: 60px;
-}
-.geo-input-group input,
-.geo-input-group select {
-  flex: 1;
-  padding: 6px 10px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  font-size: 13px;
-  background: white;
-}
-.geo-btn {
+
+.geo-main-btn {
   width: 100%;
-  padding: 6px;
+  padding: 14px;
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
   cursor: pointer;
   font-size: 14px;
   font-weight: 600;
   color: white;
   transition: all 0.2s;
-  margin-top: 8px;
-}
-.geo-btn-buffer { background: #198754; }
-.geo-btn-buffer:hover { background: #146c43; transform: translateY(-2px); }
-.geo-btn-intersect { background: #fd7e14; }
-.geo-btn-intersect:hover { background: #e86d0a; transform: translateY(-2px); }
-.geo-btn-dissolve { background: #6f42c1; }
-.geo-btn-dissolve:hover { background: #5a32a3; transform: translateY(-2px); }
-.geo-result-info {
-  font-size: 11px;
-  color: #666;
-  margin-top: 6px;
-  padding: 6px;
-  background: rgba(255,255,255,0.6);
-  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 }
 
+.geo-main-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+.geo-main-btn.buffer-btn { background: #28a745; }
+.geo-main-btn.buffer-btn:hover { background: #218838; }
+
+.geo-main-btn.intersect-btn { background: #fd7e14; }
+.geo-main-btn.intersect-btn:hover { background: #e8690d; }
+
+.geo-main-btn.dissolve-btn { background: #6f42c1; }
+.geo-main-btn.dissolve-btn:hover { background: #5a32a3; }
+
+/* Tool Details Section*/
+.geo-tool-details {
+  display: none;
+  margin-top: 0;
+  padding: 12px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border-left: 4px solid #0d6efd;
+}
+
+.geo-tool-details h6 {
+  font-size: 13px;
+  margin: 0 0 10px 0;
+  color: #0d6efd;
+  font-weight: 600;
+}
+
+.geo-tool-details p {
+  font-size: 12px;
+  color: #666;
+  margin: 0 0 10px 0;
+}
+
+.geo-input-group {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+  align-items: center;
+}
+
+.geo-input-group label {
+  font-size: 12px;
+  color: #495057;
+  font-weight: 500;
+  min-width: 55px;
+}
+
+.geo-input-group input,
+.geo-input-group select {
+  flex: 1;
+  padding: 6px 10px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 13px;
+  background: white;
+}
+
+.geo-btn {
+  width: 100%;
+  padding: 8px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  color: white;
+  transition: all 0.2s;
+  margin-top: 8px;
+}
+
+.geo-btn i {
+  margin-right: 5px;
+}
+
+.geo-btn-buffer { background: #28a745; }
+.geo-btn-buffer:hover { 
+  background: #218838; 
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
+}
+
+.geo-btn-intersect { background: #fd7e14; }
+.geo-btn-intersect:hover { 
+  background: #e8690d; 
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(253, 126, 20, 0.3);
+}
+
+.geo-btn-dissolve { background: #6f42c1; }
+.geo-btn-dissolve:hover { 
+  background: #5a32a3; 
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(111, 66, 193, 0.3);
+}
+
+.geo-back-btn {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #6c757d;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  color: #6c757d;
+  background: white;
+  transition: all 0.2s;
+  margin-top: 8px;
+}
+
+.geo-back-btn:hover {
+  background: #6c757d;
+  color: white;
+}
+
+.geo-back-btn i {
+  margin-right: 5px;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .geoprocessing-box {
+    left: 5%;
+    right: 5%;
+    width: auto;
+    max-width: 90%;
+  }
+} 
 /* Search */
 .search-bar { 
   position: fixed; 
@@ -548,7 +642,6 @@ html, body {
   background: #0d6efd; 
   color: #fff; 
 }
-
 /* Popup */
 .popup { 
   display: none; 
@@ -1217,18 +1310,32 @@ html, body {
 <!-- GEOPROCESSING BOX -->
 <div id="geoprocessingContainer" class="geoprocessing-box">
   <div class="box-header">
-    <h6>🛠️ Geoprocessing Tools</h6>
+    <h6>Geoprocessing Tools</h6>
     <button id="closeGeoprocessing" class="attr-small-btn" style="color:#333;" title="Close">
       <i class="fas fa-times"></i>
     </button>
   </div>
 
-  <!-- BUFFER TOOL -->
-  <div class="geo-tool-section">
-    <h6><i class="fas fa-circle-notch"></i> Buffer</h6>
+  <!-- MAIN 3 BUTTONS -->
+  <div class="geo-main-buttons" id="geoMainButtons">
+    <button class="geo-main-btn buffer-btn" id="showBufferTool">
+      <i class="fas fa-circle-notch"></i> Buffer
+    </button>
+    <button class="geo-main-btn intersect-btn" id="showIntersectTool">
+      <i class="fas fa-compress-arrows-alt"></i> Intersect
+    </button>
+    <button class="geo-main-btn dissolve-btn" id="showDissolveTool">
+      <i class="fas fa-object-group"></i> Dissolve
+    </button>
+  </div>
+
+  <!-- BUFFER DETAILS  -->
+  <div id="bufferDetails" class="geo-tool-details">
+    <h6><i class="fas fa-circle-notch"></i> Buffer Tool</h6>
+    <p>Create a buffer zone around selected features</p>
     <div class="geo-input-group">
       <label>Distance:</label>
-      <input type="number" id="bufferDistance" value="100" min="1" placeholder="meters">
+      <input type="number" id="bufferDistance" value="100" min="1">
     </div>
     <div class="geo-input-group">
       <label>Unit:</label>
@@ -1242,23 +1349,26 @@ html, body {
     <button id="runBuffer" class="geo-btn geo-btn-buffer">
       <i class="fas fa-play"></i> Create Buffer
     </button>
-    <div class="geo-result-info">ℹ️ Select features first, then create buffer</div>
+    <button class="geo-back-btn"><i class="fas fa-arrow-left"></i> Back</button>
   </div>
 
-  <!-- INTERSECT TOOL -->
-  <div class="geo-tool-section">
-    <h6><i class="fas fa-compress-arrows-alt"></i> Intersect</h6>
-    <div class="geo-result-info" style="margin-bottom:8px;">
-       Select 2+ overlapping features
-    </div>
+  <!-- INTERSECT DETAILS  -->
+  <div id="intersectDetails" class="geo-tool-details">
+    <h6><i class="fas fa-compress-arrows-alt"></i> Intersect Tool</h6>
+    <p>Find the overlapping area between 2+ features</p>
+    <p style="font-size:11px; color:#28a745; background:#d4edda; padding:6px; border-radius:4px;">
+      Select 2+ overlapping features from attribute table first
+    </p>
     <button id="runIntersect" class="geo-btn geo-btn-intersect">
       <i class="fas fa-play"></i> Find Intersection
     </button>
+    <button class="geo-back-btn"><i class="fas fa-arrow-left"></i> Back</button>
   </div>
 
-  <!-- DISSOLVE TOOL -->
-  <div class="geo-tool-section">
-    <h6><i class="fas fa-object-group"></i> Dissolve</h6>
+  <!-- DISSOLVE DETAILS -->
+  <div id="dissolveDetails" class="geo-tool-details">
+    <h6><i class="fas fa-object-group"></i> Dissolve Tool</h6>
+    <p>Merge selected features into one</p>
     <div class="geo-input-group">
       <label>Field:</label>
       <select id="dissolveField">
@@ -1268,9 +1378,10 @@ html, body {
     <button id="runDissolve" class="geo-btn geo-btn-dissolve">
       <i class="fas fa-play"></i> Dissolve Features
     </button>
-    <div class="geo-result-info">ℹ️ Merge selected features into one</div>
+    <button class="geo-back-btn"><i class="fas fa-arrow-left"></i> Back</button>
   </div>
 </div>
+ 
 
 <!-- NORTH ARROW -->
 <div class="north-arrow" title="Magnetic North">
@@ -1544,27 +1655,53 @@ document.getElementById("toggleGeoprocessing").onclick = () => {
   if (editorBox.style.display === "flex") editorBox.style.display = "none";
   geoBox.style.display = geoBox.style.display === "flex" ? "none" : "flex";
   
-  // Populate dissolve field dropdown
+  // Show 
   if (geoBox.style.display === "flex") {
-    const dissolveField = document.getElementById("dissolveField");
-    dissolveField.innerHTML = '<option value="_all_">Dissolve All</option>';
-    const allFeatures = getAllFeatures();
-    if (allFeatures.length > 0) {
-      const fields = new Set();
-      allFeatures.forEach(f => {
-        Object.keys(f.getProperties()).forEach(k => {
-          if (k !== 'geometry' && k !== 'color') fields.add(k);
-        });
-      });
-      fields.forEach(field => {
-        const opt = document.createElement('option');
-        opt.value = field;
-        opt.textContent = field;
-        dissolveField.appendChild(opt);
-      });
-    }
+    document.getElementById("geoMainButtons").style.display = "flex";
+    document.querySelectorAll(".geo-tool-details").forEach(d => d.style.display = "none");
   }
 };
+document.getElementById("showBufferTool").onclick = () => {
+  document.getElementById("geoMainButtons").style.display = "none";
+  document.getElementById("bufferDetails").style.display = "block";
+};
+
+document.getElementById("showIntersectTool").onclick = () => {
+  document.getElementById("geoMainButtons").style.display = "none";
+  document.getElementById("intersectDetails").style.display = "block";
+};
+
+document.getElementById("showDissolveTool").onclick = () => {
+  document.getElementById("geoMainButtons").style.display = "none";
+  document.getElementById("dissolveDetails").style.display = "block";
+  
+  // Populate dissolve field dropdown
+  const dissolveField = document.getElementById("dissolveField");
+  dissolveField.innerHTML = '<option value="_all_">Dissolve All</option>';
+  const allFeatures = getAllFeatures();
+  if (allFeatures.length > 0) {
+    const fields = new Set();
+    allFeatures.forEach(f => {
+      Object.keys(f.getProperties()).forEach(k => {
+        if (k !== 'geometry' && k !== 'color') fields.add(k);
+      });
+    });
+    fields.forEach(field => {
+      const opt = document.createElement('option');
+      opt.value = field;
+      opt.textContent = field;
+      dissolveField.appendChild(opt);
+    });
+  }
+};
+
+// Back buttons
+document.querySelectorAll(".geo-back-btn").forEach(btn => {
+  btn.onclick = () => {
+    document.querySelectorAll(".geo-tool-details").forEach(d => d.style.display = "none");
+    document.getElementById("geoMainButtons").style.display = "flex";
+  };
+});
 
 document.getElementById("closeGeoprocessing").onclick = () => {
   document.getElementById("geoprocessingContainer").style.display = "none";
@@ -2695,7 +2832,7 @@ document.getElementById("runBuffer").onclick = () => {
     alert('Please select at least one feature from the attribute table!');
     return;
   }
-  
+
   const distance = parseFloat(document.getElementById("bufferDistance").value);
   const unit = document.getElementById("bufferUnit").value;
   
