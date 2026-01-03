@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -416,117 +417,125 @@ html, body {
 }
 /* Geoprocessing Box*/
 .geoprocessing-box {
-  display: none;
   position: fixed;
-  bottom: 50px;
-  left: 15px;
-  background: white;
-  padding: 15px;
+  top: 120px;
+  right: 15px;
+  width: 320px;
+  max-height: 70vh;
+  background: rgba(26, 26, 26, 0.98);
+  color: #fff;
   border-radius: 10px;
-  z-index: 500;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.25);
-  width: 260px;
-  border: 2px solid #0d6efd;
+  padding: 12px;
+  z-index: 400;
+  display: none;
+  flex-direction: column;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  overflow-y: auto;
 }
 
 .geoprocessing-box .box-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 15px;
-  padding-bottom: 10px;
-  border-bottom: 2px solid #e0e0e0;
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(0,0,0,0.1);
+  cursor: grab;
+}
+.geoprocessing-box .box-header:active {
+  cursor: grabbing;
 }
 
 .geoprocessing-box h6 {
   margin: 0;
-  font-size: 15px;
-  color: #333;
-  font-weight: 700;
+  font-size: 16px;
+  color: #00e5ff;
+  font-weight: 600;
 }
-
 /*buttons*/
 .geo-main-buttons {
   display: flex;
-  flex-direction: column;
-  gap: 10px;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 
 .geo-main-btn {
-  width: 100%;
-  padding: 14px;
+  width: 48px;
+  height: 48px;
   border: none;
   border-radius: 8px;
   cursor: pointer;
-  font-size: 14px;
-  font-weight: 600;
-  color: white;
-  transition: all 0.2s;
+  font-size: 18px;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  color: #fff;
+  transition: all 0.2s;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
 }
 
 .geo-main-btn:hover {
+  opacity: 0.9;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
 }
 
 .geo-main-btn.buffer-btn { background: #28a745; }
-.geo-main-btn.buffer-btn:hover { background: #218838; }
-
 .geo-main-btn.intersect-btn { background: #fd7e14; }
-.geo-main-btn.intersect-btn:hover { background: #e8690d; }
-
 .geo-main-btn.dissolve-btn { background: #6f42c1; }
-.geo-main-btn.dissolve-btn:hover { background: #5a32a3; }
 
 /* Tool Details Section*/
 .geo-tool-details {
   display: none;
   margin-top: 0;
-  padding: 12px;
-  background: #f8f9fa;
+  padding: 15px;
+  background: rgba(255,255,255,0.05);
   border-radius: 8px;
-  border-left: 4px solid #0d6efd;
+  border-left: 4px solid #00e5ff;
+  overflow-y: auto;
+  max-height: calc(70vh - 100px);
 }
 
 .geo-tool-details h6 {
-  font-size: 13px;
+  font-size: 14px;
   margin: 0 0 10px 0;
-  color: #0d6efd;
+  color: #00e5ff;
   font-weight: 600;
 }
 
 .geo-tool-details p {
   font-size: 12px;
-  color: #666;
-  margin: 0 0 10px 0;
+  color: #fff;
+  margin: 0 0 15px 0;
 }
-
 .geo-input-group {
   display: flex;
-  gap: 8px;
-  margin-bottom: 8px;
-  align-items: center;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 15px;
 }
 
 .geo-input-group label {
   font-size: 12px;
-  color: #495057;
+  color: #fff;
   font-weight: 500;
-  min-width: 55px;
 }
 
 .geo-input-group input,
 .geo-input-group select {
-  flex: 1;
-  padding: 6px 10px;
-  border: 1px solid #ced4da;
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid rgba(255,255,255,0.2);
   border-radius: 4px;
   font-size: 13px;
-  background: white;
+  background: rgba(255,255,255,0.1);
+  color: #fff;
+}
+
+.geo-input-group select option {
+  background: #1a1a1a;
+  color: #fff;
 }
 
 .geo-btn {
@@ -590,15 +599,6 @@ html, body {
   margin-right: 5px;
 }
 
-/* Mobile Responsive */
-@media (max-width: 768px) {
-  .geoprocessing-box {
-    left: 5%;
-    right: 5%;
-    width: auto;
-    max-width: 90%;
-  }
-} 
 /* Search */
 .search-bar { 
   position: fixed; 
@@ -1316,16 +1316,16 @@ html, body {
     </button>
   </div>
 
-  <!-- MAIN 3 BUTTONS -->
+ <!-- MAIN 3 BUTTONS -->
   <div class="geo-main-buttons" id="geoMainButtons">
-    <button class="geo-main-btn buffer-btn" id="showBufferTool">
-      <i class="fas fa-circle-notch"></i> Buffer
+    <button class="geo-main-btn buffer-btn" id="showBufferTool" title="Buffer">
+      <i class="fas fa-circle-notch"></i>
     </button>
-    <button class="geo-main-btn intersect-btn" id="showIntersectTool">
-      <i class="fas fa-compress-arrows-alt"></i> Intersect
+    <button class="geo-main-btn intersect-btn" id="showIntersectTool" title="Intersect">
+      <i class="fas fa-compress-arrows-alt"></i>
     </button>
-    <button class="geo-main-btn dissolve-btn" id="showDissolveTool">
-      <i class="fas fa-object-group"></i> Dissolve
+    <button class="geo-main-btn dissolve-btn" id="showDissolveTool" title="Dissolve">
+      <i class="fas fa-object-group"></i>
     </button>
   </div>
 
@@ -1653,27 +1653,40 @@ document.getElementById("toggleGeoprocessing").onclick = () => {
   if (drawerContent.style.display !== "flex") return;
   const geoBox = document.getElementById("geoprocessingContainer");
   if (editorBox.style.display === "flex") editorBox.style.display = "none";
-  geoBox.style.display = geoBox.style.display === "flex" ? "none" : "flex";
   
-  // Show 
   if (geoBox.style.display === "flex") {
+    geoBox.style.display = "none";
+  } else {
+    geoBox.style.display = "flex";
+    if (!geoBox.style.left || geoBox.style.left === 'auto') {
+      geoBox.style.top = "120px";
+      geoBox.style.left = "50%";
+      geoBox.style.transform = "translateX(-50%)";
+      geoBox.style.right = "auto";
+    }
     document.getElementById("geoMainButtons").style.display = "flex";
     document.querySelectorAll(".geo-tool-details").forEach(d => d.style.display = "none");
   }
 };
 document.getElementById("showBufferTool").onclick = () => {
   document.getElementById("geoMainButtons").style.display = "none";
+  document.querySelectorAll(".geo-tool-details").forEach(d => d.style.display = "none");
   document.getElementById("bufferDetails").style.display = "block";
+  document.querySelector(".geoprocessing-box .box-header").style.display = "none";
 };
 
 document.getElementById("showIntersectTool").onclick = () => {
   document.getElementById("geoMainButtons").style.display = "none";
+  document.querySelectorAll(".geo-tool-details").forEach(d => d.style.display = "none");
   document.getElementById("intersectDetails").style.display = "block";
+  document.querySelector(".geoprocessing-box .box-header").style.display = "none";
 };
 
 document.getElementById("showDissolveTool").onclick = () => {
   document.getElementById("geoMainButtons").style.display = "none";
+  document.querySelectorAll(".geo-tool-details").forEach(d => d.style.display = "none");
   document.getElementById("dissolveDetails").style.display = "block";
+  document.querySelector(".geoprocessing-box .box-header").style.display = "none";
   
   // Populate dissolve field dropdown
   const dissolveField = document.getElementById("dissolveField");
@@ -1700,6 +1713,7 @@ document.querySelectorAll(".geo-back-btn").forEach(btn => {
   btn.onclick = () => {
     document.querySelectorAll(".geo-tool-details").forEach(d => d.style.display = "none");
     document.getElementById("geoMainButtons").style.display = "flex";
+    document.querySelector(".geoprocessing-box .box-header").style.display = "flex";
   };
 });
 
@@ -3181,6 +3195,44 @@ document.getElementById("runDissolve").onclick = () => {
     isResizeLeft = false; 
     document.body.style.userSelect = ''; 
   });
+   // DRAGGABLE GEOPROCESSING BOX
+  const geoBox = document.getElementById('geoprocessingContainer');
+  if (geoBox) {
+    const geoHeader = geoBox.querySelector('.box-header');
+    if (geoHeader) {
+      let isGeoDrag = false, geoOffsetX = 0, geoOffsetY = 0;
+      
+      geoHeader.addEventListener("mousedown", (e) => {
+        if (e.target.closest('button')) return;
+        isGeoDrag = true;
+        const rect = geoBox.getBoundingClientRect();
+        geoOffsetX = e.clientX - rect.left;
+        geoOffsetY = e.clientY - rect.top;
+        geoBox.style.position = "fixed";
+        geoBox.style.zIndex = 99999;
+        document.body.style.userSelect = 'none';
+      });
+      
+      document.addEventListener("mousemove", (e) => {
+        if (!isGeoDrag) return;
+        let left = e.clientX - geoOffsetX;
+        let top = e.clientY - geoOffsetY;
+        const pad = 8;
+        left = Math.max(pad, Math.min(left, window.innerWidth - geoBox.offsetWidth - pad));
+        top = Math.max(pad, Math.min(top, window.innerHeight - geoBox.offsetHeight - pad));
+        geoBox.style.left = left + "px";
+        geoBox.style.top = top + "px";
+        geoBox.style.right = 'auto';
+        geoBox.style.bottom = 'auto';
+      });
+      
+      document.addEventListener("mouseup", () => { 
+        isGeoDrag = false; 
+        document.body.style.userSelect = ''; 
+      });
+    }
+  }
+  
 })();
     // attribute model 
 (function() {
